@@ -48,6 +48,10 @@ namespace action_operator {
         std::cout << "Program exit" << std::endl;
     }
 
+    std::vector<function<void()>> single_actions {
+        []() { cout << "empty action" << endl; },
+    };
+
     using enum Actions;
     static map<Actions, function<void()>> action_function_map {
         {XC, []() { cout << "XC action" << endl; }},
