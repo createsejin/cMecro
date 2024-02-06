@@ -6,6 +6,7 @@
 #define OPERATOR_H
 #include "key_patterns.h"
 #include <optional>
+#include <functional>
 
 namespace action_operator {
     void break_key_pattern_threads();
@@ -36,8 +37,8 @@ namespace action_operator {
     class Action {
         const unsigned int action_id;
         const std::string action_name;
+        std::vector<std::function<void()>> action_list;
     public:
-
     };
 
     class ActionOperator {

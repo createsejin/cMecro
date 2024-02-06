@@ -126,12 +126,3 @@ int MainApp::OnExit() {
 MainApp* MainApp::GetInstance() {
     return dynamic_cast<MainApp*>(wxApp::GetInstance());
 }
-
-/*void main_window::test000() {
-    const auto* app = new MainApp();
-    wxEntryStart(nullptr, nullptr);
-    wxTheApp->CallOnInit();
-    wxTheApp->OnRun();
-    delete app;
-    wxEntryCleanup();
-}*/

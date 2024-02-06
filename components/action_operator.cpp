@@ -15,8 +15,9 @@
 using namespace std;
 
 namespace action_operator {
+    std::chrono::milliseconds keyboard_duration {15};
 
-    void break_keyboard_and_mouse_eventloop() {
+    inline void break_keyboard_and_mouse_eventloop() {
         // 현재 스레드에 WM_QUIT 메시지를 보내 keyboard_hooker event loop를 종료
         const auto keyboard_thread_id = key_data::KeyboardData::getInstance().get_current_thread_id();
         const auto mouse_thread_id = key_data::MouseData::getInstance().get_current_thread_id();
@@ -26,7 +27,7 @@ namespace action_operator {
             PostThreadMessage(mouse_thread_id, WM_QUIT, 0, 0);
     }
 
-    void command_mode_action() {
+    inline void command_mode_action() {
         commander::into_command_mode.store(true);
         timer::Timer::getInstance().start_key_release_timer();
         timer::Timer::getInstance().start_key_press_timer();
@@ -35,7 +36,7 @@ namespace action_operator {
         break_keyboard_and_mouse_eventloop();
     }
 
-    void break_key_pattern_threads() {
+    inline void break_key_pattern_threads() {
         command_mode_action();
         if (lock_guard lock(commander::commander_future_mutex);
             commander::commander_future.valid()) {
@@ -43,13 +44,21 @@ namespace action_operator {
         }
     }
 
-    void exit_program_action() {
+    inline void exit_program_action() {
         main_window::MainApp::GetInstance()->ExitMainLoop();
         std::cout << "Program exit" << std::endl;
     }
 
     std::vector<function<void()>> single_actions {
-        []() { cout << "empty action" << endl; },
+        [] { cout << "empty action" << endl; }, // 0: Empty action
+        exit_program_action, // 1: Exit action
+        command_mode_action, // 2: into command mode action
+        [] { // 3: up key action
+            cout << "up key press" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+            cout << "up key release" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+        }
     };
 
     using enum Actions;
