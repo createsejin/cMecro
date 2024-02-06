@@ -1,0 +1,773 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="S:/AceCombat Mods/ModMaking/AC7_database/AC7_data_2023-02-24_001.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="11897"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,16:mainexception_choice"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="exception_choice" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="32"/><column index="2" value="72"/><column index="3" value="70"/><column index="4" value="63"/><column index="5" value="195"/><column index="6" value="61"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="final_union_parts" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="32"/><column index="2" value="102"/><column index="3" value="41"/><column index="4" value="300"/><column index="5" value="111"/><column index="6" value="115"/><column index="7" value="106"/><column index="8" value="176"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="parameterLabels" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="32"/><column index="2" value="102"/><column index="3" value="300"/><column index="4" value="111"/><column index="5" value="115"/><column index="6" value="106"/><column index="7" value="176"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="parameter_values" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="32"/><column index="2" value="140"/><column index="3" value="70"/><column index="4" value="300"/><column index="5" value="111"/><column index="6" value="119"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="parts_capability" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="32"/><column index="2" value="72"/><column index="3" value="63"/><column index="4" value="242"/><column index="5" value="41"/><column index="6" value="80"/><column index="7" value="300"/><column index="8" value="236"/><column index="9" value="119"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="parts_level" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="32"/><column index="2" value="72"/><column index="3" value="63"/><column index="4" value="219"/><column index="5" value="48"/><column index="6" value="62"/><column index="7" value="61"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="parts_view_classified" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort><column index="2" mode="0"/></sort><column_widths><column index="1" value="32"/><column index="2" value="63"/><column index="3" value="242"/><column index="4" value="73"/><column index="5" value="300"/><column index="6" value="48"/><column index="7" value="102"/><column index="8" value="61"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="same_parameterLabels" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="41"/><column index="2" value="63"/><column index="3" value="242"/><column index="4" value="102"/><column index="5" value="87"/><column index="6" value="70"/><column index="7" value="300"/><column index="8" value="111"/><column index="9" value="119"/><column index="10" value="106"/><column index="11" value="176"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="UPDATE.sql">
+
+-- 같은 테이블의 서브쿼리로는 UPDATE할 수 없다.
+/*
+UPDATE parameterLabels AS A
+SET slot = B.slot
+FROM (
+    SELECT purpose, row_number() OVER (PARTITION BY purpose ORDER BY ParameterLabel) - 1 AS slot
+    FROM parameterLabels
+    GROUP BY purpose
+) AS B
+WHERE A.purpose = B.purpose;
+*/
+
+UPDATE parameterLabels
+SET purpose = (
+	SELECT purpose
+	FROM parts_final_data A
+	-- 다른 테이블의 서브 쿼리로부터 상응하는 값을 가져오기 위해서는 반드시 아래처럼 condition clue를 
+	-- 우변 좌변 모두 table.value 형식으로 정확히 표기해야한다.
+	-- 또한 상단의 UPDATE되는 테이블에는 A, B 등을 지정할 수 없다.
+	WHERE A.ParameterLabel = parameterLabels.ParameterLabel);
+
+-- pd.df로부터 upadate
+UPDATE parameterLabels
+SET calculed_value = ?
+WHERE ParameterLabel = ?;
+
+UPDATE parts_level
+SET choice = (
+SELECT choice
+FROM exception_choice);
+
+UPDATE merged_parts
+SET parts_pk = (
+  SELECT A.pk
+  FROM parts A
+  WHERE A.partsID = merged_partsID
+);
+
+UPDATE merged_parts
+SET union_partsID = 48, union_parts_name = &quot;고성능 작약&quot;
+WHERE purpose = &quot;폭탄 성능&quot;;
+
+-- 아래 조건을 모두 만족하는 애들만 choice
+UPDATE parts_level
+SET choice = 1
+WHERE pk IN (
+-- 같은 이름을 가진 prifix_name 중에서 level_v가 가장 높은 pk만 선택하고 이름이 &quot;None Object&quot;인 애들 제외 
+SELECT pk
+FROM (
+SELECT pk, prifix_name, max(level_v)
+FROM parts_level
+WHERE NOT prifix_name = &quot;None Object&quot;
+GROUP BY prifix_name)
+UNION
+-- prifix_name 그룹에서 level_v의 Max값이 1인 prifix_name들 중에서 이름이 &quot;None Object&quot;인 애들 제외
+SELECT pk FROM
+(SELECT pk, prifix_name, level,
+	CASE
+		WHEN max(level_v) = 1 THEN 1
+		ELSE 0
+	END AS choice
+FROM parts_level
+GROUP BY prifix_name)
+WHERE choice = 1 AND NOT prifix_name = &quot;None Object&quot;);
+
+-- level에서 level 값을 추출해 INTEGER 값으로 업데이트
+UPDATE parts_level
+SET level_v = CAST(substr(level, 4) AS INTEGER);
+
+-- 서브쿼리로 서로 다른 테이블의 partsID를 매치시켜 UPDATE
+UPDATE parts_capability
+SET parts_name = (
+  SELECT A.parts_name
+  FROM parts A
+  WHERE A.partsID = parts_capability.partsID
+);
+
+--
+UPDATE merged_parts
+SET union_partsID = 48, union_parts_name = &quot;램제트식 추진 장치(SPW) Lv.1&quot;
+WHERE purpose = &quot;특수미사일 성능&quot;;
+
+-- 특정 칼럼의 특정 텍스트를 다른 텍스트로 대치(replacement)
+UPDATE parts
+SET capability = replace(capability, '위력 향상', '위력 증가');
+
+-- 특정 범위 purpose 일괄 변경 SQL
+UPDATE parts
+SET purpose = &quot;기체 성능&quot;
+WHERE partsID &gt;= 93 AND partsID &lt;= 97;
+
+-- LIKE 매치에서 찾은 모든 partsID들과 매치되는 데이터들의 purpose를 원하는 값으로 변경
+UPDATE parts
+SET purpose = &quot;기관포 성능&quot;
+WHERE partsID IN 
+(SELECT partsID
+FROM parts
+WHERE capability LIKE &quot;%기관포%&quot;);</sql><sql name="SELECT.sql">-- Implement calculated values of Parameter Label values
+-- 요 아래의 built-in math function들은 python의 기본 패키지로는 절대로 작동할리가 없다.
+-- 그러나 트리거로 구현해놓으면 DB 내부적으로는 시스템의 sqlite3.dll을 토대로 작동하기 때문에 문제없이 실행된다.
+-- 그러나 그것이 가능하려면 당연히 built-in function을 enable화 한 미리 컴파일된 dll 파일이 반드시 시스템상에 필요하다.
+-- 당연히 이 파일이 여기 DB Browser 내부에 쓰이는 sqlite3.dll도 바꿔야한다. 
+DELETE FROM parameterLabels;
+INSERT INTO parameterLabels (purpose, ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name)
+WITH log_values AS (
+    SELECT purpose, ParameterLabel, OperationType, LOG(ParameterValue) as log_value,
+		union_partsID, union_parts_name
+    FROM (
+		SELECT *
+		FROM same_parameterLabels
+		WHERE OperationType = &quot;POT_RATE&quot;
+	)
+)
+SELECT purpose, ParameterLabel, OperationType, POWER(10, SUM(log_value)) as calculed_value,
+	union_partsID, union_parts_name
+FROM log_values
+GROUP BY ParameterLabel
+UNION
+SELECT purpose, ParameterLabel, OperationType, SUM(ParameterValue) as calculed_value, union_partsID, union_parts_name FROM same_parameterLabels
+WHERE OperationType = &quot;POT_OFFSET&quot;
+GROUP BY ParameterLabel;
+
+/*
+The built-in math functions enable sqlite3:
+1. get source code as an amalgamation of sqlite3 from the official site
+https://www.sqlite.org/download.html
+2. Extract it appropriate place
+3. You need to also the MinGw-w64 complier for c source code of sqlite3.c
+https://sourceforge.net/projects/mingw-w64/
+3. Extract it to C:/
+4. You need to add the environment path in the windows system. So that can call the compiler anywhere.
+5. Right-click on Start, then click the 'System'
+6. Go to the advanced system setting
+7. Go to environmental variables
+8. In system variables, select the 'Path' and click 'edit'.
+9. 'create new' and add the path:
+C:\mingw64\bin
+and click the 'confirm' button.
+9. Now, open cmd and input 'gcc', and if you got the appropriate errors, you did well.
+10. Go back to the place where you've extracted the sqlite3 source code file and click the windows file explorer's file path and input 'cmd'
+11. The cmd is open in your path, then input the following command:
+gcc -DSQLITE_ENABLE_MATH_FUNCTIONS -shared -o sqlite3.dll sqlite3.c
+11. Then you can get compiled sqlite3.dll file. Get a copy and paste it into your application or DB Browser's sqlite3.dll path, and replace it.
+12. Open your DB in DB Browser, input the following query, and run:
+SELECT typeof(sin(1)), typeof(cos(1)), typeof(sqrt(4));
+12. If you get three real, then you succeed!
+13. If you want to change dll for your windows 64-bit system, copy and paste complied sqlite3.dll file to the following directory:
+C:\Windows\SysWOW64
+*/
+SELECT typeof(sin(1)), typeof(cos(1)), typeof(sqrt(4));
+
+SELECT *
+FROM same_parameterLabels
+WHERE OperationType = &quot;POT_RATE&quot;;
+
+SELECT purpose, is_same, ParameterLabel, OperationType, sum(ParameterValue) as calculed_value, union_partsID, union_parts_name FROM same_parameterLabels
+WHERE OperationType = &quot;POT_OFFSET&quot;
+GROUP BY ParameterLabel;
+
+-- validation process: pk comparison
+SELECT pk
+FROM parts INDEXED BY idx_parts_main_data
+WHERE partsID = 168;
+
+SELECT pk
+FROM parts INDEXED BY idx_parts_main_data
+WHERE parts_name = &quot;기관포 자동&quot;;
+
+-- 그냥 파이썬으로 구현해라. 아니면 WITH RECURSIVE로 구현하면 된다. 그걸로 반복문을 만들 수 있기 때문이다.
+--&gt; 이것을 SQL문으로 구현해버렸다! 위 query를 참조하자. 
+SELECT partsID, parts_name, purpose, same_para, is_same, ParameterLabel, OperationType, 
+ParameterValue, next_same_para, next_is_same, before_value, base_value, calculed_value,
+union_partsID, union_parts_name FROM
+(SELECT row, partsID, parts_name, purpose, same_para, is_same, ParameterLabel, OperationType, 
+ParameterValue,
+next_same_para, next_is_same, before_value, base_value, 
+	CASE
+		WHEN next_same_para &gt; 0 AND next_is_same = 1 AND OperationType = &quot;POT_RATE&quot; THEN before_value * base_value
+		WHEN next_same_para &gt; 0 AND next_is_same = 1 AND OperationType = &quot;POT_OFFSET&quot; THEN before_value + base_value
+		ELSE NULL
+	END AS calculed_value,
+union_partsID, union_parts_name FROM
+(SELECT t.row, t.partsID, t.parts_name, t.purpose, t.same_para, t.is_same, t.ParameterLabel, 
+	t.OperationType, t.ParameterValue,
+	(SELECT same_para FROM same_parameterLabels WHERE row = t.row + 1) AS next_same_para,
+	(SELECT is_same FROM same_parameterLabels WHERE row = t.row + 1) AS next_is_same,
+	B.ParameterValue as before_value,
+	CASE
+		WHEN t.same_para = 0 AND t.is_same = 1 THEN t.ParameterValue
+		ELSE NULL
+	END AS base_value, 	
+	t.union_partsID, t.union_parts_name
+FROM same_parameterLabels t
+-- self JOIN
+LEFT JOIN ( 
+	-- self subquery
+	SELECT * 
+	FROM same_parameterLabels) B 
+ON B.row = (
+	SELECT C.row
+	FROM (
+		-- self subquery
+		SELECT *
+		FROM same_parameterLabels
+	) C
+	WHERE C.row = t.row - 1
+)));
+
+
+SELECT same_para, is_same
+FROM same_parameterLabels
+WHERE row = 15;
+
+SELECT parts_name
+FROM parts INDEXED BY idx_parts_main_data
+WHERE parts_name REGEXP &quot;투&quot;
+ORDER BY parts_name
+LIMIT 10;
+
+SELECT parts_name
+FROM parts INDEXED BY idx_parts_main_data
+WHERE partsID = 10;
+
+SELECT purpose, slot, ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name
+FROM final_union_parts;
+
+SELECT pk, purpose, 
+	row_number() OVER (PARTITION BY purpose ORDER BY pk) - 1 AS slot,
+	ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name
+FROM parameterLabels;
+
+-- 실제 python에서 producting을 진행하기 위한 SELECT문
+SELECT purpose, same_para, is_same, ParameterLabel, OperationType, ParameterValue, union_partsID, union_parts_name
+FROM same_parameterLabels;
+
+-- same ParameterLabel들의 values들을 곱하거나 더하기 위한 SELECT
+SELECT partsID, parts_name, purpose,
+-- 같은 purpose를 가진 리스트 중에서 ParameterLabel이 겹치는 항목에 파티션된 row_number를 부여
+row_number() OVER (PARTITION BY purpose, ParameterLabel ORDER BY partsID) - 1 AS same_para,
+	-- 파티션된 ParameterLabel 그룹의 count가 2를 넘으면 1(true)를 반환, 아니면 0(false)
+	CASE
+		WHEN count(*) OVER (PARTITION BY ParameterLabel) &gt;= 2 THEN 1
+		ELSE 0
+	END AS is_same,
+ParameterLabel, OperationType, 
+ParameterValue, union_partsID, union_parts_name
+FROM parts_final_data;
+
+-- union parts 들을 모두 캠페인 모드 전용으로 만들기 위한 SELECT문
+SELECT union_partsID, union_parts_name
+FROM merged_parts
+GROUP BY union_partsID;
+
+-- parts_final_data로부터 json 파일에 삽입하기 위한 SELECT문
+SELECT purpose, slot_num, ParameterLabel, OperationType, ParameterValue, union_partsID, union_parts_name
+FROM parts_final_data;
+
+-- parts_final_data view SELECT SQL + row_number for purpose
+SELECT A.partsID, A.parts_name, B.category, B.capability, B.purpose, 
+A.slot, 
+row_number() OVER (PARTITION BY B.purpose ORDER BY A.partsID) - 1 AS slot_num,
+A.capability as actual_capa, 
+-- 같은 purpose를 가진 리스트 중에서 ParameterLabel이 겹치는 항목에 파티션된 row_number를 부여
+row_number() OVER (PARTITION BY B.purpose, A.ParameterLabel ORDER BY A.partsID) - 1 AS same_para,
+A.ParameterLabel, substr(A.OperationType, 26) AS OperationType, ParameterValue,
+C.union_partsID, C.union_parts_name
+FROM parts_capability A
+JOIN parts_using B
+ON A.partsID = B.partsID
+JOIN merged_parts C
+ON A.partsID = C.merged_partsID
+ORDER BY B.purpose, A.partsID;
+
+SELECT partsID
+FROM parts_final_data
+GROUP BY partsID;
+
+-- union parts의 slot 수 구하기
+SELECT purpose, count(purpose), union_partsID, union_parts_name
+FROM parts_final_data
+GROUP BY purpose;
+
+-- parts_final_data view SELECT SQL
+SELECT A.partsID, A.parts_name, B.category, B.capability, B.purpose, 
+A.slot, A.capability as actual_capa, A.ParameterLabel, substr(A.OperationType, 26), ParameterValue,
+C.union_partsID, C.union_parts_name
+FROM parts_capability A
+JOIN parts_using B
+ON A.partsID = B.partsID
+JOIN merged_parts C
+ON A.partsID = C.merged_partsID
+ORDER BY B.purpose, A.partsID;
+
+SELECT A.pk as parts_pk, A.partsID, A.parts_name, B.slot, B.parameter, B.type, B.value
+FROM parts A
+JOIN parts_capa_temp B
+ON A.partsID = B.partsID;
+
+SELECT * FROM parts_capa_temp;
+
+-- 실제 사용될 merge될 파츠들의 partsID
+SELECT pk, partsID, parts_name
+FROM parts
+WHERE partsID IN (
+SELECT partsID FROM parts_using
+ORDER BY partsID ASC);
+
+-- 같은 이름을 가진 prifix_name 중에서 level_v가 가장 높은 pk만 선택하고 이름이 &quot;None Object&quot;인 애들 제외 
+SELECT pk
+FROM (
+SELECT pk, prifix_name, max(level_v)
+FROM parts_level
+WHERE NOT prifix_name = &quot;None Object&quot;
+GROUP BY prifix_name)
+-- SELECT UNION
+UNION
+-- prifix_name 그룹에서 level_v의 Max값이 1인 prifix_name들 중에서 이름이 &quot;None Object&quot;인 애들 제외
+SELECT pk FROM
+(SELECT pk, prifix_name, level,
+	CASE
+		WHEN max(level_v) = 1 THEN 1
+		ELSE 0
+	END AS choice
+FROM parts_level
+GROUP BY prifix_name)
+WHERE choice = 1 AND NOT prifix_name = &quot;None Object&quot;;
+
+-- 같은 이름을 가진 prifix_name 중에서 level_v가 가장 높은 pk만 선택
+SELECT pk FROM
+(SELECT pk, prifix_name, max(level_v)
+FROM parts_level
+GROUP BY prifix_name);
+
+-- substr 후, TEXT를 CAST로 INTEGER로 convert
+SELECT pk, CAST(substr(level, 4) AS INTEGER) AS level_v
+FROM parts_level;
+
+-- parts_name에서 Lv.\d 요소 제거
+SELECT 
+	CASE
+		WHEN parts_name REGEXP &quot;Lv.1&quot; THEN replace(parts_name, &quot;Lv.1&quot;, &quot;&quot;)
+		WHEN parts_name REGEXP &quot;Lv.2&quot; THEN replace(parts_name, &quot;Lv.2&quot;, &quot;&quot;)
+		WHEN parts_name REGEXP &quot;Lv.3&quot; THEN replace(parts_name, &quot;Lv.3&quot;, &quot;&quot;)
+		ELSE parts_name
+	END
+FROM parts;
+
+-- CASE와 REGEXP를 사용하여 해당되는 열에 level result를 출력.
+SELECT partsID, parts_name, category, capability, purpose,
+	CASE 
+		WHEN parts_name REGEXP &quot;Lv.1&quot; THEN &quot;Lv.1&quot;
+		WHEN parts_name REGEXP &quot;Lv.2&quot; THEN &quot;LV.2&quot;
+		WHEN parts_name REGEXP &quot;Lv.3&quot; THEN &quot;Lv.3&quot;
+		ELSE &quot;Lv.1&quot;
+	END AS level
+FROM parts;
+
+-- REGEXP를 사용하여 정규표현식으로 데이터 찾기
+SELECT partsID, parts_name, capability
+FROM parts
+WHERE parts_name REGEXP &quot;Lv.1&quot;;
+
+-- LIKE 조건을 두 개 이상 쓰는 SQL
+SELECT *
+FROM parts
+WHERE capability LIKE &quot;%특수미사일%&quot;
+OR
+capability LIKE &quot;%특수 미사일%&quot;;
+
+SELECT partsID, parts_name, capability
+FROM parts
+WHERE capability LIKE &quot;%표준미사일%&quot;;
+
+SELECT * FROM
+(SELECT partsID
+FROM parts
+WHERE capability LIKE &quot;%EML%&quot;);
+
+SELECT partsID, parts_name, capability
+FROM parts
+WHERE capability LIKE &quot;%TLS%&quot;
+OR
+capability LIKE &quot;%PLSL%&quot;;</sql><sql name="VIEW.sql">DROP VIEW parts_view_classified;
+CREATE VIEW parts_view_classified AS
+SELECT A.pk, A.partsID, A.parts_name, A.category, A.capability, B.level, A.purpose, B.choice
+FROM parts A
+JOIN parts_level B
+ON A.pk = B.parts_pk
+ORDER BY A.purpose, A.partsID, B.level;
+
+CREATE VIEW parts_using AS
+SELECT pk, partsID, parts_name, category, capability, purpose
+FROM parts_view_classified
+WHERE choice = 1;
+
+DROP VIEW parts_final_data;
+CREATE VIEW parts_final_data AS
+-- parts_final_data view SELECT SQL + row_number for purpose
+SELECT A.partsID, A.parts_name, B.category, B.capability, B.purpose, 
+A.slot, 
+row_number() OVER (PARTITION BY B.purpose ORDER BY A.partsID) - 1 AS slot_num,
+A.capability as actual_capa, A.ParameterLabel, substr(A.OperationType, 26) AS OperationType, ParameterValue,
+C.union_partsID, C.union_parts_name
+FROM parts_capability A
+JOIN parts_using B
+ON A.partsID = B.partsID
+JOIN merged_parts C
+ON A.partsID = C.merged_partsID
+ORDER BY B.purpose, A.partsID;
+
+DROP VIEW same_parameterLabels;
+-- same ParameterLabel들의 values들을 곱하거나 더하기 위한 VIEW
+CREATE VIEW same_parameterLabels AS
+SELECT row_number() OVER () AS row, partsID, parts_name, purpose,
+-- 같은 purpose를 가진 리스트 중에서 ParameterLabel이 겹치는 항목에 파티션된 row_number를 부여
+row_number() OVER (PARTITION BY purpose, ParameterLabel ORDER BY partsID) - 1 AS same_para,
+	-- 파티션된 ParameterLabel 그룹의 count가 2를 넘으면 1(true)를 반환, 아니면 0(false)
+	CASE
+		WHEN count(*) OVER (PARTITION BY ParameterLabel) &gt;= 2 THEN 1
+		ELSE 0
+	END AS is_same,
+ParameterLabel, OperationType, 
+ParameterValue,
+union_partsID, union_parts_name
+FROM parts_final_data;
+
+DROP VIEW final_union_parts;
+CREATE VIEW final_union_parts AS
+SELECT pk, purpose, 
+	row_number() OVER (PARTITION BY purpose ORDER BY pk) - 1 AS slot,
+	ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name
+FROM parameterLabels;</sql><sql name="INSERT.sql">DELETE FROM parameterLabels;
+INSERT INTO parameter_values (ParameterLabel_pk, ParameterLabel, OperationType, ParameterValue)
+SELECT B.pk, A.ParameterLabel, A.OperationType, A.ParameterValue
+FROM same_parameterLabels A
+JOIN parameterLabels B
+ON B.ParameterLabel = A.ParameterLabel;
+
+
+INSERT INTO parameterLabels (ParameterLabel, OperationType, union_partsID, union_parts_name)
+SELECT ParameterLabel, OperationType, union_partsID, union_parts_name
+FROM same_parameterLabels
+GROUP BY ParameterLabel;
+UPDATE parameterLabels
+SET purpose = (
+	SELECT purpose
+	FROM parts_final_data A
+	WHERE A.ParameterLabel = parameterLabels.ParameterLabel);
+
+-- exception_choice INSERT
+INSERT INTO exception_choice (parts_pk, level_pk, partsID, parts_name, choice)
+SELECT A.parts_pk, A.pk, A.partsID, B.parts_name, 0 as choice
+FROM parts_level A
+JOIN parts B
+ON A.parts_pk = B.pk
+WHERE A.partsID = 133;
+
+INSERT INTO merged_parts (merged_partsID, merged_part_name, category, merged_capability, purpose)
+SELECT partsID, parts_name, category, capability, purpose
+FROM parts_using
+WHERE partsID &gt;= 83 AND partsID &lt;= 84;
+
+INSERT INTO parts_capability (parts_pk, partsID, parts_name, slot, ParameterLabel, OperationType, ParameterValue)
+SELECT A.pk as parts_pk, A.partsID, A.parts_name, B.slot, B.parameter, B.type, B.value
+FROM parts A
+JOIN parts_capa_temp B
+ON A.partsID = B.partsID
+WHERE B.pk = 279;
+
+INSERT INTO parts_capa_temp (partsID, slot, parameter, type, value)
+VALUES (?, ?, ?, ?, ?);
+
+INSERT INTO parts_capability (parts_pk, partsID, parts_name, capa_num, ParameterLabel, OperationType, ParameterValue)
+VALUES (10, 10, &quot;ECU 소프트웨어 업데이트 Lv.2&quot;, 1, &quot;EPartsParameterList::PA_HighGSpeedStartDec&quot;, &quot;RATE&quot;, 0.8);
+
+
+-- 데이터 rows를 parts_level에 INSERT 한다.
+INSERT INTO parts_level (parts_pk, partsID, prifix_name, level)
+SELECT pk, partsID,
+	CASE
+		WHEN parts_name REGEXP &quot;Lv.1&quot; THEN replace(parts_name, &quot;Lv.1&quot;, &quot;&quot;)
+		WHEN parts_name REGEXP &quot;Lv.2&quot; THEN replace(parts_name, &quot;Lv.2&quot;, &quot;&quot;)
+		WHEN parts_name REGEXP &quot;Lv.3&quot; THEN replace(parts_name, &quot;Lv.3&quot;, &quot;&quot;)
+		ELSE parts_name
+	END AS prifix_name,
+	CASE 
+		WHEN parts_name REGEXP &quot;Lv.1&quot; THEN &quot;Lv.1&quot;
+		WHEN parts_name REGEXP &quot;Lv.2&quot; THEN &quot;LV.2&quot;
+		WHEN parts_name REGEXP &quot;Lv.3&quot; THEN &quot;LV.3&quot;
+		ELSE &quot;Lv.1&quot;
+	END AS level
+FROM parts;
+
+-- CASE와 REGEXP를 사용하여 parts_level에 들어갈 데이터셋을 만든다.
+SELECT pk, partsID,
+	CASE 
+		WHEN parts_name REGEXP &quot;Lv.1&quot; THEN 0
+		WHEN parts_name REGEXP &quot;Lv.2&quot; THEN 1
+		ELSE 1
+	END AS choice
+FROM parts;</sql><sql name="ALTER.sql">
+-- DROP TABLE parts_level;
+
+CREATE TABLE &quot;parts_level&quot; ( 
+&quot;pk&quot; INTEGER, 
+&quot;parts_pk&quot; INTEGER, 
+&quot;partsID&quot; INTEGER, 
+&quot;level&quot; TEXT, 
+&quot;choice&quot; INTEGER DEFAULT 0,
+FOREIGN KEY(&quot;parts_pk&quot;) 
+REFERENCES &quot;parts&quot;(&quot;pk&quot;), 
+PRIMARY KEY(&quot;pk&quot; AUTOINCREMENT) );
+
+
+ALTER TABLE parts
+DROP COLUMN level;
+
+
+
+</sql><sql name="DELETE">DELETE FROM parts_level;
+DELETE FROM parts_capa_temp;
+DELETE FROM exception_choice WHERE partsID = 133;</sql><sql name="TRIGGER.sql">DROP TRIGGER update_exception_choice;
+DROP TRIGGER insert_exception_choice;
+DROP TRIGGER delete_exception_choice;
+
+CREATE TRIGGER update_exception_choice
+AFTER UPDATE ON exception_choice
+BEGIN
+	UPDATE parts_level
+	SET choice = (
+	SELECT A.choice
+	FROM exception_choice A
+	WHERE A.parts_pk = parts_level.pk
+	)
+	WHERE pk IN (
+	SELECT level_pk
+	FROM exception_choice
+	);  
+	-- exception_choice에 있는 view들만 업데이트 한다.
+	SELECT * FROM parts_view_classified
+	WHERE partsID IN (SELECT partsID FROM exception_choice);
+	SELECT * FROM parts_using
+	WHERE partsID IN (SELECT partsID FROM exception_choice);
+	SELECT * FROM parts_final_data
+	WHERE partsID IN (SELECT partsID FROM exception_choice);
+	SELECT * FROM same_parameterLabels
+	WHERE partsID IN (SELECT partsID FROM exception_choice);
+
+	-- parameterLabels modify
+	DELETE FROM parameterLabels;	
+	INSERT INTO parameterLabels (purpose, ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name)
+	WITH log_values AS (
+		SELECT purpose, ParameterLabel, OperationType, LOG(ParameterValue) as log_value,
+			union_partsID, union_parts_name
+		FROM (
+			SELECT *
+			FROM same_parameterLabels
+			WHERE OperationType = &quot;POT_RATE&quot;
+		)
+	)
+	SELECT purpose, ParameterLabel, OperationType, POWER(10, SUM(log_value)) as calculed_value,
+		union_partsID, union_parts_name
+	FROM log_values
+	GROUP BY ParameterLabel
+	UNION
+	SELECT purpose, ParameterLabel, OperationType, SUM(ParameterValue) as calculed_value, union_partsID, union_parts_name FROM same_parameterLabels
+	WHERE OperationType = &quot;POT_OFFSET&quot;
+	GROUP BY ParameterLabel;
+END;
+
+CREATE TRIGGER insert_exception_choice
+AFTER INSERT ON exception_choice
+BEGIN
+	UPDATE parts_level
+	SET choice = (
+	SELECT A.choice
+	FROM exception_choice A
+	WHERE A.parts_pk = parts_level.pk
+	)
+	WHERE pk IN (
+	SELECT level_pk
+	FROM exception_choice
+	);
+	SELECT * FROM parts_view_classified
+	WHERE partsID IN (SELECT partsID FROM exception_choice);
+	SELECT * FROM parts_using
+	WHERE partsID IN (SELECT partsID FROM exception_choice);
+	SELECT * FROM parts_final_data
+	WHERE partsID IN (SELECT partsID FROM exception_choice);
+	SELECT * FROM same_parameterLabels
+	WHERE partsID IN (SELECT partsID FROM exception_choice);
+
+	-- parameterLabels modify
+	DELETE FROM parameterLabels;	
+	INSERT INTO parameterLabels (purpose, ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name)
+	WITH log_values AS (
+		SELECT purpose, ParameterLabel, OperationType, LOG(ParameterValue) as log_value,
+			union_partsID, union_parts_name
+		FROM (
+			SELECT *
+			FROM same_parameterLabels
+			WHERE OperationType = &quot;POT_RATE&quot;
+		)
+	)
+	SELECT purpose, ParameterLabel, OperationType, POWER(10, SUM(log_value)) as calculed_value,
+		union_partsID, union_parts_name
+	FROM log_values
+	GROUP BY ParameterLabel
+	UNION
+	SELECT purpose, ParameterLabel, OperationType, SUM(ParameterValue) as calculed_value, union_partsID, union_parts_name FROM same_parameterLabels
+	WHERE OperationType = &quot;POT_OFFSET&quot;
+	GROUP BY ParameterLabel;
+END;
+
+CREATE TRIGGER delete_exception_choice
+AFTER DELETE ON exception_choice
+BEGIN
+	-- 아래 조건을 모두 만족하는 애들만 choice
+	UPDATE parts_level
+	SET choice = 1
+	WHERE pk IN (
+	-- 같은 이름을 가진 prifix_name 중에서 level_v가 가장 높은 pk만 선택하고 이름이 &quot;None Object&quot;인 애들 제외 
+	SELECT pk
+	FROM (
+	SELECT pk, prifix_name, max(level_v)
+	FROM parts_level
+	WHERE NOT prifix_name = &quot;None Object&quot;
+	GROUP BY prifix_name)
+	UNION
+	-- prifix_name 그룹에서 level_v의 Max값이 1인 prifix_name들 중에서 이름이 &quot;None Object&quot;인 애들 제외
+	SELECT pk FROM
+	(SELECT pk, prifix_name, level,
+		CASE
+			WHEN max(level_v) = 1 THEN 1
+			ELSE 0
+		END AS choice
+	FROM parts_level
+	GROUP BY prifix_name)
+	WHERE choice = 1 AND NOT prifix_name = &quot;None Object&quot;);
+	
+	UPDATE parts_level
+	  SET choice = (
+		SELECT A.choice
+		FROM exception_choice A
+		WHERE A.parts_pk = parts_level.pk
+	  )
+	  WHERE pk IN (
+		SELECT level_pk
+		FROM exception_choice
+	  );
+	  
+	SELECT * FROM parts_view_classified;
+	SELECT * FROM parts_using;
+	SELECT * FROM parts_final_data;
+	SELECT * FROM same_parameterLabels;
+	
+	-- parameterLabels modify
+	DELETE FROM parameterLabels;	
+	INSERT INTO parameterLabels (purpose, ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name)
+	WITH log_values AS (
+		SELECT purpose, ParameterLabel, OperationType, LOG(ParameterValue) as log_value,
+			union_partsID, union_parts_name
+		FROM (
+			SELECT *
+			FROM same_parameterLabels
+			WHERE OperationType = &quot;POT_RATE&quot;
+		)
+	)
+	SELECT purpose, ParameterLabel, OperationType, POWER(10, SUM(log_value)) as calculed_value,
+		union_partsID, union_parts_name
+	FROM log_values
+	GROUP BY ParameterLabel
+	UNION
+	SELECT purpose, ParameterLabel, OperationType, SUM(ParameterValue) as calculed_value, union_partsID, union_parts_name FROM same_parameterLabels
+	WHERE OperationType = &quot;POT_OFFSET&quot;
+	GROUP BY ParameterLabel;
+END;</sql><sql name="dataModify.sql">-- before modify
+PRAGMA foreign_keys = OFF;
+DROP VIEW parts_view_classified;
+DROP VIEW parts_using;
+DROP VIEW parts_final_data;
+DROP VIEW same_parameterLabels;
+DROP VIEW final_union_parts;
+
+CREATE TABLE &quot;temp_table01&quot; (
+	pk	INTEGER,
+	purpose	TEXT,
+	ParameterLabel	TEXT UNIQUE,
+	OperationType	TEXT,
+	calculed_value	REAL,
+	union_partsID	INTEGER,
+	union_parts_name TEXT,
+	time_stamp TIMESTAMP,	
+	PRIMARY KEY(&quot;pk&quot; AUTOINCREMENT)
+);
+INSERT INTO temp_table01 (purpose, ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name)
+SELECT purpose, ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name FROM parameterLabels;
+DROP TABLE parameterLabels;
+ALTER TABLE temp_table01 RENAME TO parameterLabels;
+
+-- modify table : Database Structure에서 긁어올것.
+-- CREATE TABLE &quot;temp_table01&quot; (
+-- 	&quot;pk&quot;	INTEGER,
+-- 	&quot;purpose&quot;	TEXT,
+-- 	&quot;ParameterLabel&quot;	TEXT UNIQUE,
+-- 	&quot;OperationType&quot;	TEXT,
+-- 	&quot;calculed_value&quot;	REAL,
+-- 	&quot;union_partsID&quot;	INTEGER,
+-- 	&quot;union_parts_name&quot;	TEXT,
+-- 	PRIMARY KEY(&quot;pk&quot; AUTOINCREMENT)
+-- );
+-- INSERT INTO temp_table01 (purpose, ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name)
+-- SELECT purpose, ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name FROM parameterLabels;
+-- DROP TABLE parameterLabels;
+-- ALTER TABLE temp_table01 RENAME TO parameterLabels;
+
+-- after modify
+PRAGMA foreign_keys = ON;
+
+-- CREATE VIEW
+CREATE VIEW parts_view_classified AS
+SELECT A.pk, A.partsID, A.parts_name, A.category, A.capability, B.level, A.purpose, B.choice
+FROM parts A
+JOIN parts_level B
+ON A.pk = B.parts_pk
+ORDER BY A.purpose, A.partsID, B.level;
+
+CREATE VIEW parts_using AS
+SELECT pk, partsID, parts_name, category, capability, purpose
+FROM parts_view_classified
+WHERE choice = 1;
+
+CREATE VIEW parts_final_data AS
+-- parts_final_data view SELECT SQL + row_number for purpose
+SELECT A.partsID, A.parts_name, B.category, B.capability, B.purpose, 
+A.slot, 
+row_number() OVER (PARTITION BY B.purpose ORDER BY A.partsID) - 1 AS slot_num,
+A.capability as actual_capa, A.ParameterLabel, substr(A.OperationType, 26) AS OperationType, ParameterValue,
+C.union_partsID, C.union_parts_name
+FROM parts_capability A
+JOIN parts_using B
+ON A.partsID = B.partsID
+JOIN merged_parts C
+ON A.partsID = C.merged_partsID
+ORDER BY B.purpose, A.partsID;
+
+-- same ParameterLabel들의 values들을 곱하거나 더하기 위한 VIEW
+CREATE VIEW same_parameterLabels AS
+SELECT row_number() OVER () AS row, partsID, parts_name, purpose,
+-- 같은 purpose를 가진 리스트 중에서 ParameterLabel이 겹치는 항목에 파티션된 row_number를 부여
+row_number() OVER (PARTITION BY purpose, ParameterLabel ORDER BY partsID) - 1 AS same_para,
+	-- 파티션된 ParameterLabel 그룹의 count가 2를 넘으면 1(true)를 반환, 아니면 0(false)
+	CASE
+		WHEN count(*) OVER (PARTITION BY ParameterLabel) &gt;= 2 THEN 1
+		ELSE 0
+	END AS is_same,
+ParameterLabel, OperationType, 
+ParameterValue,
+union_partsID, union_parts_name
+FROM parts_final_data;
+
+CREATE VIEW final_union_parts AS
+SELECT pk, purpose, 
+	row_number() OVER (PARTITION BY purpose ORDER BY pk) - 1 AS slot,
+	ParameterLabel, OperationType, calculed_value, union_partsID, union_parts_name
+FROM parameterLabels;
+
+-- FOREIGN KEY CHECK
+PRAGMA foreign_key_check;
+VACUUM;
+PRAGMA optimize;</sql><current_tab id="1"/></tab_sql></sqlb_project>

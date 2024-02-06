@@ -1,0 +1,263 @@
+#include <Keyboard.h>
+#include <Mouse.h>
+
+String GetString = "";
+
+void setup() {
+  Serial.begin(9600);
+}
+
+void loop() {
+  GetString = "";
+  char data = -1;
+  while (Serial.available()) {
+    data = Serial.read();
+    GetString.concat(data);
+  }
+
+  if (GetString != "") {
+    String sub1 = GetString.substring(0, 1);
+    if (sub1 == "M") {
+      String sub1 = GetString.substring(0, 2);
+      int sub2 = GetString.substring(2).toInt();
+      if (sub1 == "MX") {
+        Mouse.move(sub2, 0, 0);
+      }
+      else if (sub1 == "MY") {
+        Mouse.move(0, sub2, 0);
+      }
+      else if (sub1 == "MW") {
+        Mouse.move(0, 0, sub2);
+      }
+    }
+
+    else if (sub1 == "R") {
+      String sub1 = GetString.substring(0, 2);
+      if (sub1 == "RC") {
+        Mouse.click(MOUSE_RIGHT);
+      }
+      else if (sub1 == "RH") {
+        Mouse.press(MOUSE_RIGHT);
+      }
+      else if (sub1 == "RR") {
+        Mouse.release(MOUSE_RIGHT);
+      }
+      else if (sub1 == "RD") {
+        Mouse.click(MOUSE_RIGHT);
+        Mouse.click(MOUSE_RIGHT);
+      }
+    }
+
+    else if (sub1 == "L") {
+      String sub1 = GetString.substring(0, 2);
+      if (sub1 == "LC") {
+        Mouse.click(MOUSE_LEFT);
+      }
+      else if (sub1 == "LH") {
+        Mouse.press(MOUSE_LEFT);
+      }
+      else if (sub1 == "LR") {
+        Mouse.release(MOUSE_LEFT);
+      }
+      else if (sub1 == "LD") {
+        Mouse.click(MOUSE_LEFT);
+        Mouse.click(MOUSE_LEFT);
+      }
+    }
+
+    else if (sub1 == "C") {
+      String sub1 = GetString.substring(0, 2);
+      if (sub1 == "CC") {
+        Mouse.click(MOUSE_MIDDLE);
+      }
+      else if (sub1 == "CH") {
+        Mouse.press(MOUSE_MIDDLE);
+      }
+      else if (sub1 == "CR") {
+        Mouse.release(MOUSE_MIDDLE);
+      }
+      else if (sub1 == "CD") {
+        Mouse.click(MOUSE_MIDDLE);
+        Mouse.click(MOUSE_MIDDLE);
+      }
+    }
+
+    else if (sub1 == "K") {
+      String sub1 = GetString.substring(0, 2);
+      String sub2 = GetString.substring(2);
+      if (sub2 == "F1") {
+        SendKey(sub1, KEY_F1);
+      }
+      else if (sub2 == "F2") {
+        SendKey(sub1, KEY_F2);
+      }
+      else if (sub2 == "F3") {
+        SendKey(sub1, KEY_F3);
+      }
+      else if (sub2 == "F4") {
+        SendKey(sub1, KEY_F4);
+      }
+      else if (sub2 == "F5") {
+        SendKey(sub1, KEY_F5);
+      }
+      else if (sub2 == "F6") {
+        SendKey(sub1, KEY_F6);
+      }
+      else if (sub2 == "F7") {
+        SendKey(sub1, KEY_F7);
+      }
+      else if (sub2 == "F8") {
+        SendKey(sub1, KEY_F8);
+      }
+      else if (sub2 == "F9") {
+        SendKey(sub1, KEY_F9);
+      }
+      else if (sub2 == "F10") {
+        SendKey(sub1, KEY_F10);
+      }
+      else if (sub2 == "F11") {
+        SendKey(sub1, KEY_F11);
+      }
+      else if (sub2 == "F12") {
+        SendKey(sub1, KEY_F12);
+      }
+      else if (sub2 == "N0") {
+        SendKey(sub1, 234);
+      }
+      else if (sub2 == "N1") {
+        SendKey(sub1, 225);
+      }
+      else if (sub2 == "N2") {
+        SendKey(sub1, 226);
+      }
+      else if (sub2 == "N3") {
+        SendKey(sub1, 227);
+      }
+      else if (sub2 == "N4") {
+        SendKey(sub1, 228);
+      }
+      else if (sub2 == "N5") {
+        SendKey(sub1, 229);
+      }
+      else if (sub2 == "N6") {
+        SendKey(sub1, 230);
+      }
+      else if (sub2 == "N7") {
+        SendKey(sub1, 231);
+      }
+      else if (sub2 == "N8") {
+        SendKey(sub1, 232);
+      }
+      else if (sub2 == "N9") {
+        SendKey(sub1, 234);
+      }
+      else if (sub2 == "N10") {
+        SendKey(sub1, 221);
+      }
+      else if (sub2 == "N11") {
+        SendKey(sub1, 224);
+      }
+      else if (sub2 == "N12") {
+        SendKey(sub1, 222);
+      }
+      else if (sub2 == "N13") {
+        SendKey(sub1, 235);
+      }
+      else if (sub2 == "N14") {
+        SendKey(sub1, 223);
+      }
+      else if (sub2 == "N15") {
+        SendKey(sub1, 220);
+      }
+      else if (sub2 == "LS") {
+        SendKey(sub1, KEY_LEFT_SHIFT);
+      }
+      else if (sub2 == "RS") {
+        SendKey(sub1, KEY_RIGHT_SHIFT);
+      }
+      else if (sub2 == "LC") {
+        SendKey(sub1, KEY_LEFT_CTRL);
+      }
+      else if (sub2 == "RC") {
+        SendKey(sub1, KEY_RIGHT_CTRL);
+      }
+      else if (sub2 == "LA") {
+        SendKey(sub1, KEY_LEFT_ALT);
+      }
+      else if (sub2 == "RA") {
+        SendKey(sub1, KEY_RIGHT_ALT);
+      }
+      else if (sub2 == "LW") {
+        SendKey(sub1, KEY_LEFT_GUI);
+      }
+      else if (sub2 == "RW") {
+        SendKey(sub1, KEY_RIGHT_GUI);
+      }
+      else if (sub2 == "AL") {
+        SendKey(sub1, KEY_LEFT_ARROW);
+      }
+      else if (sub2 == "AU") {
+        SendKey(sub1, KEY_UP_ARROW);
+      }
+      else if (sub2 == "AR") {
+        SendKey(sub1, KEY_RIGHT_ARROW);
+      }
+      else if (sub2 == "AD") {
+        SendKey(sub1, KEY_DOWN_ARROW);
+      }
+      else if (sub2 == "BS") {
+        SendKey(sub1, KEY_BACKSPACE);
+      }
+      else if (sub2 == "SB") {
+        SendKey(sub1, ' ');
+      }
+      else if (sub2 == "TB") {
+        SendKey(sub1, KEY_TAB);
+      }
+      else if (sub2 == "ET") {
+        SendKey(sub1, KEY_RETURN);
+      }
+      else if (sub2 == "EC") {
+        SendKey(sub1, KEY_ESC);
+      }
+      else if (sub2 == "IT") {
+        SendKey(sub1, KEY_INSERT);
+      }
+      else if (sub2 == "DT") {
+        SendKey(sub1, KEY_DELETE);
+      }
+      else if (sub2 == "PU") {
+        SendKey(sub1, KEY_PAGE_UP);
+      }
+      else if (sub2 == "PD") {
+        SendKey(sub1, KEY_PAGE_DOWN);
+      }
+      else if (sub2 == "HM") {
+        SendKey(sub1, KEY_HOME);
+      }
+      else if (sub2 == "ED") {
+        SendKey(sub1, KEY_END);
+      }
+      else if (sub2 == "CL") {
+        SendKey(sub1, KEY_CAPS_LOCK);
+      }
+      else {
+        if (sub1 == "KD") {
+          Keyboard.press(sub2[0]);
+        }
+        else if (sub1 == "KU") {
+          Keyboard.release(sub2[0]);
+        }
+      }
+    }
+  }
+}
+
+void SendKey(String sub1, uint8_t sub2) {
+  if (sub1 == "KD") {
+    Keyboard.press(sub2);
+  }
+  else if (sub1 == "KU") {
+    Keyboard.release(sub2);
+  }
+}
