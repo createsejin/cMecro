@@ -17,7 +17,7 @@ using namespace std;
 namespace action_operator {
     std::chrono::milliseconds keyboard_duration {18};
 
-    void break_keyboard_and_mouse_eventloop() {
+    inline void break_keyboard_and_mouse_eventloop() {
         // 현재 스레드에 WM_QUIT 메시지를 보내 keyboard_hooker event loop를 종료
         const auto keyboard_thread_id = key_data::KeyboardData::getInstance().get_current_thread_id();
         const auto mouse_thread_id = key_data::MouseData::getInstance().get_current_thread_id();
@@ -27,7 +27,7 @@ namespace action_operator {
             PostThreadMessage(mouse_thread_id, WM_QUIT, 0, 0);
     }
 
-    void command_mode_action() {
+    inline void command_mode_action() {
         commander::into_command_mode.store(true);
         timer::Timer::getInstance().start_key_release_timer();
         timer::Timer::getInstance().start_key_press_timer();
@@ -44,45 +44,55 @@ namespace action_operator {
         }
     }
 
-    void exit_program_action() {
+    inline void exit_program_action() {
         main_window::MainApp::GetInstance()->ExitMainLoop();
         std::cout << "Program exit" << std::endl;
+    }
+
+    inline void up_key_action() {
+        cout << "up key press" << endl;
+        std::this_thread::sleep_for(keyboard_duration);
+        cout << "up key release" << endl;
+        std::this_thread::sleep_for(keyboard_duration);
+    }
+
+    inline void down_key_action() {
+        cout << "down key press" << endl;
+        std::this_thread::sleep_for(keyboard_duration);
+        cout << "down key release" << endl;
+        std::this_thread::sleep_for(keyboard_duration);
+    }
+
+    inline void left_key_action() {
+        cout << "left key press" << endl;
+        std::this_thread::sleep_for(keyboard_duration);
+        cout << "left key release" << endl;
+        std::this_thread::sleep_for(keyboard_duration);
+    }
+
+    inline void right_key_action() {
+        cout << "right key press" << endl;
+        std::this_thread::sleep_for(keyboard_duration);
+        cout << "right key release" << endl;
+        std::this_thread::sleep_for(keyboard_duration);
+    }
+
+    inline void enter_key_action() {
+        cout << "Enter key press" << endl;
+        std::this_thread::sleep_for(keyboard_duration);
+        cout << "Enter key release" << endl;
+        std::this_thread::sleep_for(keyboard_duration);
     }
 
     std::vector<void(*)()> single_actions_vec {
         [] { cout << "empty action" << endl; }, // 0: Empty action
         exit_program_action, // 1: Exit action
         command_mode_action, // 2: into command mode action
-        [] { // 3: up key action
-            cout << "up key press" << endl;
-            std::this_thread::sleep_for(keyboard_duration);
-            cout << "up key release" << endl;
-            std::this_thread::sleep_for(keyboard_duration);
-        },
-        [] { // 4: down key action
-            cout << "down key press" << endl;
-            std::this_thread::sleep_for(keyboard_duration);
-            cout << "down key release" << endl;
-            std::this_thread::sleep_for(keyboard_duration);
-        },
-        [] { // 5: left key action
-            cout << "left key press" << endl;
-            std::this_thread::sleep_for(keyboard_duration);
-            cout << "left key release" << endl;
-            std::this_thread::sleep_for(keyboard_duration);
-        },
-        [] { // 6: right key action
-            cout << "right key press" << endl;
-            std::this_thread::sleep_for(keyboard_duration);
-            cout << "right key release" << endl;
-            std::this_thread::sleep_for(keyboard_duration);
-        },
-        [] { // 7: Enter key action
-            cout << "Enter key press" << endl;
-            std::this_thread::sleep_for(keyboard_duration);
-            cout << "Enter key release" << endl;
-            std::this_thread::sleep_for(keyboard_duration);
-        }
+        up_key_action, // 3: up key action
+        down_key_action, // 4: down key action
+        left_key_action, // 5: left key action
+        right_key_action, // 6: right key action
+        enter_key_action, // 7: enter key action
     };
 
     Action::Action(const unsigned action_id, const std::string_view action_name)
@@ -249,17 +259,5 @@ namespace action_operator {
     }
     auto ActionOperator::get_execute_key_pattern_opt() -> std::optional<key_patterns::KeyPattern>& {
         return execute_key_pattern_opt;
-    }
-
-    void test_action_inlining() {
-        Action test_actions(1, "test_actions");
-        test_actions.add_action(single_actions_vec[3]);
-        test_actions.add_action(single_actions_vec[3]);
-        test_actions.add_action(single_actions_vec[3]);
-        test_actions.add_action(single_actions_vec[4]);
-        test_actions.add_action(single_actions_vec[4]);
-        test_actions.add_action(single_actions_vec[4]);
-
-        test_actions.play_action_list();
     }
 }
