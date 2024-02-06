@@ -49,50 +49,46 @@ namespace action_operator {
         std::cout << "Program exit" << std::endl;
     }
 
-    inline void up_key_action() {
-        cout << "up key press" << endl;
-        std::this_thread::sleep_for(keyboard_duration);
-        cout << "up key release" << endl;
-        std::this_thread::sleep_for(keyboard_duration);
-    }
-
-    inline void down_key_action() {
-        cout << "down key press" << endl;
-        std::this_thread::sleep_for(keyboard_duration);
-        cout << "down key release" << endl;
-        std::this_thread::sleep_for(keyboard_duration);
-    }
-
-    inline void left_key_action() {
-        cout << "left key press" << endl;
-        std::this_thread::sleep_for(keyboard_duration);
-        cout << "left key release" << endl;
-        std::this_thread::sleep_for(keyboard_duration);
-    }
-
-    inline void right_key_action() {
-        cout << "right key press" << endl;
-        std::this_thread::sleep_for(keyboard_duration);
-        cout << "right key release" << endl;
-        std::this_thread::sleep_for(keyboard_duration);
-    }
-
-    inline void enter_key_action() {
-        cout << "Enter key press" << endl;
-        std::this_thread::sleep_for(keyboard_duration);
-        cout << "Enter key release" << endl;
-        std::this_thread::sleep_for(keyboard_duration);
-    }
-
-    std::vector<void(*)()> single_actions_vec {
+    std::vector<std::function<void()>> single_actions_vec {
         [] { cout << "empty action" << endl; }, // 0: Empty action
         exit_program_action, // 1: Exit action
         command_mode_action, // 2: into command mode action
-        up_key_action, // 3: up key action
-        down_key_action, // 4: down key action
-        left_key_action, // 5: left key action
-        right_key_action, // 6: right key action
-        enter_key_action, // 7: enter key action
+        [] { // 3: up key action
+            cout << "up key press" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+            cout << "up key release" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+        },
+        [] { // 4: down key action
+            cout << "down key press" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+            cout << "down key release" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+        },
+        [] { // 5: left key action
+            cout << "left key press" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+            cout << "left key release" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+        },
+        [] { // 6: right key action
+            cout << "right key press" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+            cout << "right key release" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+        },
+        [] { // 7: Enter key action
+            cout << "Enter key press" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+            cout << "Enter key release" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+        },
+        [] { // 8: M key action
+            cout << "M key press" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+            cout << "M key release" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+        }
     };
 
     Action::Action(const unsigned action_id, const std::string_view action_name)
@@ -104,8 +100,8 @@ namespace action_operator {
         }
     }
 
-    void Action::add_action(void(*func)()) {
-        action_list.push_back(func);
+    void Action::add_action(std::function<void()>* func_ptr) {
+        action_list.push_back(func_ptr);
     }
 
     using enum Actions;
@@ -259,5 +255,17 @@ namespace action_operator {
     }
     auto ActionOperator::get_execute_key_pattern_opt() -> std::optional<key_patterns::KeyPattern>& {
         return execute_key_pattern_opt;
+    }
+
+    void test_action_list() {
+        Action test_action(1, "test_action");
+        test_action.add_action(&single_actions_vec[3]);
+        test_action.add_action(&single_actions_vec[3]);
+        test_action.add_action(&single_actions_vec[3]);
+        test_action.add_action(&single_actions_vec[4]);
+        test_action.add_action(&single_actions_vec[5]);
+        test_action.add_action(&single_actions_vec[4]);
+
+        test_action.play_action_list();
     }
 }

@@ -6,6 +6,7 @@
 #define OPERATOR_H
 #include "key_patterns.h"
 #include <optional>
+#include <functional>
 
 namespace action_operator {
     void break_key_pattern_threads();
@@ -36,11 +37,11 @@ namespace action_operator {
     class Action {
         const unsigned action_id{};
         const std::string action_name;
-        std::vector<void(*)()> action_list;
+        std::vector<std::function<void()>*> action_list;
     public:
         Action(unsigned action_id, std::string_view action_name);
         void play_action_list() const;
-        void add_action(void(*func)());
+        void add_action(std::function<void()>* func_ptr);
     };
 
     class ActionOperator {
@@ -67,5 +68,7 @@ namespace action_operator {
         static void set_execute_key_pattern_opt(key_patterns::KeyPattern& key_pattern);
         static auto get_execute_key_pattern_opt() -> std::optional<key_patterns::KeyPattern>&;
     };
+
+    void test_action_list();
 }
 #endif //OPERATOR_H
