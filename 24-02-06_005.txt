@@ -764,6 +764,10 @@
     SQLite database 파일이 필요하다. inline optimaization을 위해 cmake-build-release 버전의 프로파일을 추가하고 이에 대한
     빌드 폴더를 추가해주고, 이 폴더는 역시 git에서 제외한다.
 
+24-02-06_005
+    clion에서 처음에 git repository를 설정하는건 다시 해봐야 알 것 같다. 그냥 터미널 명령어에서 하는게 나을 수도 있다.
+
+
 
 
 
