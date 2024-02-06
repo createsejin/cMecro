@@ -737,7 +737,30 @@
 24-02-06_003
     github 올리는것도 참 여러가지 해결해야할 이슈가 많다. git을 처음 사용하는 나에게는 정말로 버겁다. 여러가지 실패를 또 겪는것이다.
     자꾸 Merge 에러가 나는데.. 대체 무엇 때문인지 알 수가 있어야지 ㅋㅋ 미치겄네. 그럼 Merge 말고 그냥 rewrite 해버리면 되지 않을까.
-    하 미치겄네.
+    하 미치겄네. 일단은 다음 명령을 통해 remote 레포지토리를 pull 하고 다시 push 해주니 되는것 같다.
+
+    PS D:\Projects\gta_cMecro> git pull origin master
+    From https://github.com/createsejin/gta_cMecro
+     * branch            master     -> FETCH_HEAD
+    Already up to date.
+    PS D:\Projects\gta_cMecro> git push origin master
+    Enumerating objects: 8, done.
+    Counting objects: 100% (8/8), done.
+    Delta compression using up to 12 threads
+    Compressing objects: 100% (4/4), done.
+    Writing objects: 100% (4/4), 549 bytes | 549.00 KiB/s, done.
+    Total 4 (delta 3), reused 0 (delta 0), pack-reused 0
+    remote: Resolving deltas: 100% (3/3), completed with 2 local objects.
+    To https://github.com/createsejin/gta_cMecro.git
+       a1e616c..9f5af50  master -> master
+
+    문제는 Clion에서 push할때 잘 되느냐는 건데.. 계속 테스트를 해봐야할 것 같다. 어? 잘 되는것 같은데?
+    역시 문제는 처음 remote 레포지토리를 pull 하지 않은 상태에서 그냥 push하다보니 뭔가 내부적으로 confilct가 일어나서
+    병합 거부 문제가 발생한 것으로 보인다.
+
+24-02-06_004
+    뭐 일단은 메인컴에서도 잘되는지 테스트를 해봐야하는데. 그건 나중에 해보자.
+
 
 
 
