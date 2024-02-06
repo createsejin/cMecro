@@ -1,0 +1,68 @@
+//
+// Created by creat on 2023-12-27.
+//
+
+#ifndef OPERATOR_H
+#define OPERATOR_H
+#include "key_patterns.h"
+#include <optional>
+
+namespace action_operator {
+    void break_key_pattern_threads();
+    enum class PlayerState {
+        NORMAL,
+        CEO, EMPLOYEE,
+        MC, NEWCOMER, HENCHMAN,
+    };
+
+    enum class CurrentWeapon {
+        UNARMED,
+        MELEE,
+        PISTOL,
+        SHOTGUN,
+        SMG,
+        RIFLE,
+        HEAVY,
+        SNIPER,
+        THROWABLE,
+        SPECIAL,
+    };
+
+    struct GTAFlags {
+        PlayerState player_state{PlayerState::NORMAL};
+        CurrentWeapon current_weapon{CurrentWeapon::UNARMED};
+    };
+
+    class Action {
+        const unsigned int action_id;
+        const std::string action_name;
+    public:
+
+    };
+
+    class ActionOperator {
+        inline static std::optional<key_patterns::KeyPattern> execute_key_pattern_opt{};
+        ActionOperator();
+        ~ActionOperator();
+        static void toggling();
+        static void frame_of_action();
+    public:
+        static ActionOperator& getInstance();
+        ActionOperator(const ActionOperator&) = delete;
+        ActionOperator(ActionOperator&&) = delete;
+        ActionOperator& operator=(const ActionOperator&) = delete;
+        ActionOperator& operator=(ActionOperator&&) = delete;
+    private:
+        static void find_missing_function_map_actions_in_key_patterns();
+        static void find_missing_key_patterns_actions_in_function_map();
+        static void find_missing_function_map_actions_in_Actions();
+        static void find_missing_key_patterns_actions_in_Actions();
+    public:
+        static void verify_action_function_map();
+
+        static void operate();
+        static void set_execute_key_pattern_opt(key_patterns::KeyPattern& key_pattern);
+        static auto get_execute_key_pattern_opt() -> std::optional<key_patterns::KeyPattern>&;
+    };
+}
+#endif //OPERATOR_H

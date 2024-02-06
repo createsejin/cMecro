@@ -1,0 +1,3 @@
+D:/Projects/gta_cMecro/cmake-build-debug/CMakeFiles/gta_cMecro.dir
+D:/Projects/gta_cMecro/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/Projects/gta_cMecro/cmake-build-debug/CMakeFiles/rebuild_cache.dir

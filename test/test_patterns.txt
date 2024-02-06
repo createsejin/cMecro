@@ -1,0 +1,49 @@
+-----------------------------------------------------
+action name: SF_X_C_pattern
+pattern type: NORMAL, pattern size: 3, need_blocking: 0
+combine keys: F, S
+A-Z bit: 00000100000000000010000000
+combine keys: X
+A-Z bit: 00000000000000000000000100
+combine keys: C
+A-Z bit: 00100000000000000000000000
+-----------------------------------------------------
+action name: AD_C_pattern
+pattern type: NORMAL, pattern size: 2, need_blocking: 0
+combine keys: A, D
+A-Z bit: 10010000000000000000000000
+combine keys: C
+A-Z bit: 00100000000000000000000000
+-----------------------------------------------------
+action name: SF_X_pattern
+pattern type: NORMAL, pattern size: 2, need_blocking: 0
+combine keys: F, S
+A-Z bit: 00000100000000000010000000
+combine keys: X
+A-Z bit: 00000000000000000000000100
+-----------------------------------------------------
+action name: SF_hold_pattern
+pattern type: HOLD  , pattern size: 1, need_blocking: 0
+combine keys: F, S
+A-Z bit: 00000100000000000010000000
+-----------------------------------------------------
+action name: AD_pattern
+pattern type: NORMAL, pattern size: 1, need_blocking: 0
+combine keys: A, D
+A-Z bit: 10010000000000000000000000
+-----------------------------------------------------
+action name: SF_pattern
+pattern type: NORMAL, pattern size: 1, need_blocking: 0
+combine keys: F, S
+A-Z bit: 00000100000000000010000000
+-----------------------------------------------------
+action name: Exit Program
+pattern type: NORMAL, pattern size: 1, need_blocking: 0
+combine keys: F1, F4
+A-Z bit: 00000000000000000000000000
+-----------------------------------------------------
+action name: Command Mode
+pattern type: NORMAL, pattern size: 1, need_blocking: 0
+combine keys: F2, F4
+A-Z bit: 00000000000000000000000000
+-----------------------------------------------------

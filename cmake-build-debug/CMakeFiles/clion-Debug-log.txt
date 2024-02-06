@@ -1,0 +1,6 @@
+"C:\Users\bae\AppData\Local\Programs\CLion Nova\bin\cmake\win\x64\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=C:/Program Files/ninja-win/ninja.exe" "-DCMAKE_C_COMPILER=C:/Program Files/LLVM/bin/clang.exe" "-DCMAKE_CXX_COMPILER=C:/Program Files/LLVM/bin/clang++.exe" -G Ninja -S D:\Projects\gta_cMecro -B D:\Projects\gta_cMecro\cmake-build-debug
+-- PARENT_DIR: D:/Projects
+current com = sub_com
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: D:/Projects/gta_cMecro/cmake-build-debug
