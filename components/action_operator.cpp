@@ -17,7 +17,7 @@ using namespace std;
 namespace action_operator {
     std::chrono::milliseconds keyboard_duration {18};
 
-    inline void break_keyboard_and_mouse_eventloop() {
+    void break_keyboard_and_mouse_eventloop() {
         // 현재 스레드에 WM_QUIT 메시지를 보내 keyboard_hooker event loop를 종료
         const auto keyboard_thread_id = key_data::KeyboardData::getInstance().get_current_thread_id();
         const auto mouse_thread_id = key_data::MouseData::getInstance().get_current_thread_id();
@@ -27,7 +27,7 @@ namespace action_operator {
             PostThreadMessage(mouse_thread_id, WM_QUIT, 0, 0);
     }
 
-    inline void command_mode_action() {
+    void command_mode_action() {
         commander::into_command_mode.store(true);
         timer::Timer::getInstance().start_key_release_timer();
         timer::Timer::getInstance().start_key_press_timer();
@@ -36,7 +36,7 @@ namespace action_operator {
         break_keyboard_and_mouse_eventloop();
     }
 
-    inline void break_key_pattern_threads() {
+    void break_key_pattern_threads() {
         command_mode_action();
         if (lock_guard lock(commander::commander_future_mutex);
             commander::commander_future.valid()) {
@@ -44,12 +44,12 @@ namespace action_operator {
         }
     }
 
-    inline void exit_program_action() {
+    void exit_program_action() {
         main_window::MainApp::GetInstance()->ExitMainLoop();
         std::cout << "Program exit" << std::endl;
     }
 
-    std::vector<function<void()>> single_actions {
+    std::vector<void(*)()> single_actions_vec {
         [] { cout << "empty action" << endl; }, // 0: Empty action
         exit_program_action, // 1: Exit action
         command_mode_action, // 2: into command mode action
@@ -82,13 +82,21 @@ namespace action_operator {
             std::this_thread::sleep_for(keyboard_duration);
             cout << "Enter key release" << endl;
             std::this_thread::sleep_for(keyboard_duration);
-        },
+        }
     };
 
-    void Action::play_action_list() {
+    Action::Action(const unsigned action_id, const std::string_view action_name)
+        : action_id(action_id), action_name(action_name) {}
 
+    void Action::play_action_list() const {
+        for (const auto& action : action_list) {
+            (*action)();
+        }
     }
 
+    void Action::add_action(void(*func)()) {
+        action_list.push_back(func);
+    }
 
     using enum Actions;
     static map<Actions, function<void()>> action_function_map {
@@ -244,6 +252,14 @@ namespace action_operator {
     }
 
     void test_action_inlining() {
+        Action test_actions(1, "test_actions");
+        test_actions.add_action(single_actions_vec[3]);
+        test_actions.add_action(single_actions_vec[3]);
+        test_actions.add_action(single_actions_vec[3]);
+        test_actions.add_action(single_actions_vec[4]);
+        test_actions.add_action(single_actions_vec[4]);
+        test_actions.add_action(single_actions_vec[4]);
 
+        test_actions.play_action_list();
     }
 }
