@@ -35,10 +35,11 @@ namespace action_operator {
     };
 
     class Action {
-        const unsigned int action_id;
+        const unsigned int action_id{};
         const std::string action_name;
         std::vector<std::function<void()>> action_list;
     public:
+        void play_action_list();
     };
 
     class ActionOperator {
@@ -65,5 +66,7 @@ namespace action_operator {
         static void set_execute_key_pattern_opt(key_patterns::KeyPattern& key_pattern);
         static auto get_execute_key_pattern_opt() -> std::optional<key_patterns::KeyPattern>&;
     };
+
+    void test_action_inlining();
 }
 #endif //OPERATOR_H

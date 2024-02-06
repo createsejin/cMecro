@@ -15,7 +15,7 @@
 using namespace std;
 
 namespace action_operator {
-    std::chrono::milliseconds keyboard_duration {15};
+    std::chrono::milliseconds keyboard_duration {18};
 
     inline void break_keyboard_and_mouse_eventloop() {
         // 현재 스레드에 WM_QUIT 메시지를 보내 keyboard_hooker event loop를 종료
@@ -58,8 +58,37 @@ namespace action_operator {
             std::this_thread::sleep_for(keyboard_duration);
             cout << "up key release" << endl;
             std::this_thread::sleep_for(keyboard_duration);
-        }
+        },
+        [] { // 4: down key action
+            cout << "down key press" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+            cout << "down key release" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+        },
+        [] { // 5: left key action
+            cout << "left key press" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+            cout << "left key release" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+        },
+        [] { // 6: right key action
+            cout << "right key press" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+            cout << "right key release" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+        },
+        [] { // 7: Enter key action
+            cout << "Enter key press" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+            cout << "Enter key release" << endl;
+            std::this_thread::sleep_for(keyboard_duration);
+        },
     };
+
+    void Action::play_action_list() {
+
+    }
+
 
     using enum Actions;
     static map<Actions, function<void()>> action_function_map {
@@ -212,5 +241,9 @@ namespace action_operator {
     }
     auto ActionOperator::get_execute_key_pattern_opt() -> std::optional<key_patterns::KeyPattern>& {
         return execute_key_pattern_opt;
+    }
+
+    void test_action_inlining() {
+
     }
 }
