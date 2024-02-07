@@ -63,6 +63,8 @@ set(SOURCES
         components/view/main_window.cpp
         components/view/main_window.h
         lib/CLI11.hpp
+        components/sql_executive.cpp
+        components/sql_executive.h
 )
 if(USE_CONSOLE)
     add_definitions(-DUSE_CONSOLE)

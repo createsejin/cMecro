@@ -7,6 +7,7 @@
 #include "keyboard_hooker.h"
 #include "mouse_hooker.h"
 #include "key_data.h"
+#include <sstream>
 
 using namespace std;
 
@@ -107,12 +108,25 @@ namespace commander {
         if (pos != std::string::npos) {
             input.erase(pos, 5);
         }
-        switch (input) {
-            case "exit":
-                action_operator::exit_program_action();
-                break;
-            default:
-                cout << "Invalid command." << endl;
+        std::istringstream iss(input);
+        std::vector<std::string> args;
+        std::string arg;
+        while (std::getline(iss, arg, ' ')) {
+            args.push_back(arg);
+        }
+        std::string first_command;
+        if (!args.empty()) first_command = args[0];
+
+        if (first_command == "exit") {
+            exit_program.store(true);
+            action_operator::exit_program_action();
+        } else if (first_command == "insert") {
+            cout << "insert command" << endl;
+            if (args[1] == "key_code") {
+
+            }
+        } else {
+            cout << "Unknown command" << endl;
         }
     }
 
