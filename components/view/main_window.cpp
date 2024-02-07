@@ -15,6 +15,7 @@ using namespace std;
 
 void MainFrame::OnClose(wxCloseEvent& event) {
     commander::exit_program.store(true);
+    commander::command_mode_cv.notify_one();
     action_operator::break_key_pattern_threads();
     event.Skip();
 }

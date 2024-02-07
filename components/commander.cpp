@@ -98,12 +98,31 @@ namespace commander {
         }
     }
 
+    std::mutex command_mode_mutex;
+    std::mutex exit_program_mutex;
+    std::string input;
+
+    void input_loop() {
+        while (true) {
+            unique_lock lock(command_mode_mutex);
+            command_mode_cv.wait(lock, [] {
+                return into_command_mode.load();
+            });
+            // input이 들어왔다면 getline 블로킹이 풀린다.
+            std::getline(std::cin, input);
+            into_command_mode.store(true);
+            exit_program_cv.notify_one();
+            if (exit_program.load()) break;
+        }
+    }
+
     void commander(const int argc, char* argv[]) {
         // keyboard_hooker와 mouse_hooker의 이벤트 루프를 실행할 스레드변수의 선언
         thread eventLoopThread_keyboard;
         thread eventLoopThread_mouse;
+        thread input_thread(input_loop);
 
-        while(true) { // command loop
+        while(!exit_program.load()) { // command loop
             if (start_up) {
                 // Program을 시작하고 처음에만 실행되는 코드다.
                 cout << "Program start" << endl;
@@ -130,19 +149,17 @@ namespace commander {
                 eventLoopThread_mouse.join();
                 cout << "mouse hooker event loop breaked." << endl;
             }
-            if (exit_program.load()) {
-                cout << "exit command loop" << endl;
-                return;
-            }
-            // 특정 키 조합에 의한 operation에 의해 스레드를 종료시키고 커맨드 모드로 진입한다.
-            // code here //
-            if(into_command_mode.load()) {
-                cout << "command mode" << endl;
-                into_command_mode.store(false);
-            }
-            std::cout << "cmd> ";
-            std::string input;
-            std::getline(std::cin, input); // blocking
+            // command mode 진입시
+            std::cout << "cmd> "; // command mode prompt
+            into_command_mode.store(false);
+            std::unique_lock lock(exit_program_mutex);
+            // 여기에서 대기된다. exit program 호출 전까지는
+            exit_program_cv.wait(lock, [] {
+                return exit_program.load() || into_command_mode.load();
+            });
+            lock.unlock();
+            if (exit_program.load()) break;
+
             const auto pos = input.find("cmd>");
             if (pos != std::string::npos) {
                 input.erase(pos, 5);
@@ -153,5 +170,7 @@ namespace commander {
                 std::cout << "Parse error: " << e.what() << std::endl;
             }
         }
+
+        if (input_thread.joinable()) input_thread.join();
     }
 }

@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:sqlite:C:\Users\creat\Projects\gta_cMecro\cmake-build-debug-system\test_db_001.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="mecro_data.sqlite" uuid="bc7e85ae-eb90-4c8f-8e63-21bbcdd7e0b8">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/mecro_data.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

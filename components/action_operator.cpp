@@ -29,6 +29,7 @@ namespace action_operator {
 
     inline void command_mode_action() {
         commander::into_command_mode.store(true);
+        commander::command_mode_cv.notify_one();
         timer::Timer::getInstance().start_key_release_timer();
         timer::Timer::getInstance().start_key_press_timer();
         timer::Timer::getInstance().join_key_release_timer_thread();
