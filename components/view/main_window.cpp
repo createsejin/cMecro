@@ -15,8 +15,9 @@ using namespace std;
 
 void MainFrame::OnClose(wxCloseEvent& event) {
     commander::exit_program.store(true);
-    commander::command_mode_cv.notify_one();
-    action_operator::break_key_pattern_threads();
+    if (!commander::into_command_mode.load())
+        action_operator::break_key_pattern_threads();
+    else cout << "\nMain window closing request received. Press Enter to exit." << endl;
     event.Skip();
 }
 
@@ -49,8 +50,7 @@ std::vector<char*> convertArgs(const wxCmdLineArgsArray& argv) {
         std::strcpy(arg_c, arg_str.c_str());
         // 복사된 arg_c를 arg_c_vec에 push_back한다.
         arg_c_vec.push_back(arg_c);
-        }
-    // char*를 담은 vector를 반환한다.
+    } // char*를 담은 vector를 반환한다.
     return arg_c_vec;
 }
 
@@ -81,14 +81,6 @@ void signalHandler(const int signum) {
     exit(signum);
 }
 
-void set_CLI() {
-    auto* help_subcmd1 = commander::cli.add_subcommand("help",
-        "Display help message");
-    help_subcmd1->callback([]() {
-        cout << "This is help message" << endl;
-    });
-}
-
 void MainApp::initialize_resources() const {
     std::signal(SIGINT, signalHandler);
     std::signal(SIGTERM, signalHandler);
@@ -100,8 +92,6 @@ void MainApp::initialize_resources() const {
     commander::set_debug_option_from_command_line(argc, argv);
     // test initialize key patterns
     key_patterns::test003();
-    // set CLI::App
-    set_CLI();
 }
 
 bool MainApp::OnInit() { // 이제 이게 main() 함수 역할, 리소스 초기화 역할을 한다.

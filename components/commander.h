@@ -7,7 +7,6 @@
 #include <future>
 
 namespace commander {
-    inline CLI::App cli{"command line interface"};
     // pattern matcher와 관련된 코드들의 deep debug option
     inline std::future<void> commander_future;
     inline std::mutex commander_future_mutex;
@@ -16,8 +15,6 @@ namespace commander {
     inline std::atomic exit_program{false};
 
     void set_debug_option_from_command_line(int argc, char* argv[]);
-    inline std::condition_variable command_mode_cv;
-    inline std::condition_variable exit_program_cv;
     void commander(int argc, char* argv[]);
 }
 #endif //COMMANDER_H

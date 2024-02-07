@@ -10,6 +10,7 @@
 
 namespace action_operator {
     void break_key_pattern_threads();
+    void exit_program_action();
     enum class PlayerState {
         NORMAL,
         CEO, EMPLOYEE,

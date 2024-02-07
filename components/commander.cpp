@@ -2,6 +2,8 @@
 // Created by creat on 2023-12-27.
 //
 #include "commander.h"
+
+#include "action_operator.h"
 #include "keyboard_hooker.h"
 #include "mouse_hooker.h"
 #include "key_data.h"
@@ -97,22 +99,20 @@ namespace commander {
             eventLoopThread_mouse.join();
         }
     }
-
-    std::mutex command_mode_mutex;
-    std::mutex exit_program_mutex;
-    std::string input;
-
-    void input_loop() {
-        while (true) {
-            unique_lock lock(command_mode_mutex);
-            command_mode_cv.wait(lock, [] {
-                return into_command_mode.load();
-            });
-            // input이 들어왔다면 getline 블로킹이 풀린다.
-            std::getline(std::cin, input);
-            into_command_mode.store(true);
-            exit_program_cv.notify_one();
-            if (exit_program.load()) break;
+    void command_operator() {
+        std::cout << "cmd> "; // command mode prompt
+        std::string input;
+        std::getline(std::cin, input);
+        const auto pos = input.find("cmd>");
+        if (pos != std::string::npos) {
+            input.erase(pos, 5);
+        }
+        switch (input) {
+            case "exit":
+                action_operator::exit_program_action();
+                break;
+            default:
+                cout << "Invalid command." << endl;
         }
     }
 
@@ -120,7 +120,6 @@ namespace commander {
         // keyboard_hooker와 mouse_hooker의 이벤트 루프를 실행할 스레드변수의 선언
         thread eventLoopThread_keyboard;
         thread eventLoopThread_mouse;
-        thread input_thread(input_loop);
 
         while(!exit_program.load()) { // command loop
             if (start_up) {
@@ -149,28 +148,13 @@ namespace commander {
                 eventLoopThread_mouse.join();
                 cout << "mouse hooker event loop breaked." << endl;
             }
-            // command mode 진입시
-            std::cout << "cmd> "; // command mode prompt
-            into_command_mode.store(false);
-            std::unique_lock lock(exit_program_mutex);
-            // 여기에서 대기된다. exit program 호출 전까지는
-            exit_program_cv.wait(lock, [] {
-                return exit_program.load() || into_command_mode.load();
-            });
-            lock.unlock();
             if (exit_program.load()) break;
-
-            const auto pos = input.find("cmd>");
-            if (pos != std::string::npos) {
-                input.erase(pos, 5);
+            // command mode 진입시
+            if (into_command_mode.load()) {
+                cout << "command mode" << endl;
+                into_command_mode.store(false);
             }
-            try {
-                cli.parse(input, false);
-            } catch (const CLI::ParseError& e) {
-                std::cout << "Parse error: " << e.what() << std::endl;
-            }
+            command_operator();
         }
-
-        if (input_thread.joinable()) input_thread.join();
     }
 }
