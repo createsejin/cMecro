@@ -8,7 +8,6 @@
 #include "timer.h"
 #include "key_data.h"
 #include <iostream>
-#include <functional>
 #include <map>
 #include <ranges>
 

@@ -26,7 +26,7 @@ namespace key_patterns {
     }
 
     KeyCodeManager::KeyCodeManager() {
-        std::map<KeyCode, std::string> keyCode_name_map_ = {
+        std::map<KeyCode, std::string> keyCode_name_map = {
             {A, "A"}, {B, "B"}, {C, "C"}, {D, "D"}, {E, "E"},
             {F, "F"}, {G, "G"}, {H, "H"}, {I, "I"}, {J, "J"},
             {K, "K"}, {L, "L"}, {M, "M"}, {N, "N"}, {O, "O"},
@@ -65,7 +65,7 @@ namespace key_patterns {
             {MOUSE_MIDDLE, "MouseMiddle"}, {MOUSE_X1, "MouseX1"}, {MOUSE_X2, "MouseX2"},
             {MOUSE_WHEEL_UP, "MouseWheelUp"}, {MOUSE_WHEEL_DOWN, "MouseWheelDown"}
         };
-        keyCode_name_map = std::move(keyCode_name_map_);
+        this->keyCode_name_map = std::move(keyCode_name_map);
 
         for (// 이것도 나중에 파일화 해야함. 아니면 SQL 쓰던가.
             const std::unordered_set unblocking_keys { make_int_keyset({

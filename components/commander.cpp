@@ -7,6 +7,7 @@
 #include "keyboard_hooker.h"
 #include "mouse_hooker.h"
 #include "key_data.h"
+#include "sql_executive.h"
 #include <sstream>
 
 using namespace std;
@@ -121,9 +122,8 @@ namespace commander {
             exit_program.store(true);
             action_operator::exit_program_action();
         } else if (first_command == "insert") {
-            cout << "insert command" << endl;
             if (args[1] == "key_code") {
-
+                sql_executive::insert_key_code();
             }
         } else {
             cout << "Unknown command" << endl;
