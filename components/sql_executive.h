@@ -7,5 +7,6 @@
 namespace sql_executive
 {
     void insert_key_code();
+    void insert_key_code_oldv();
 }
 #endif //SQL_EXECUTIVE_H
