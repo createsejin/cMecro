@@ -30,3 +30,16 @@ CREATE TABLE IF NOT EXISTS combine_keys(
     FOREIGN KEY (pattern_pk) REFERENCES key_pattern(pk),
     FOREIGN KEY (key_code_pk) REFERENCES key_code(pk)
 );
+
+CREATE TABLE IF NOT EXISTS menus(
+    pk INTEGER,
+    menu_id INTEGER NOT NULL UNIQUE,
+    menu_name TEXT NOT NULL,
+    PRIMARY KEY (pk AUTOINCREMENT)
+);
+
+CREATE TABLE IF NOT EXISTS menu_hierarchy(
+    pk INTEGER,
+    parent_menu_pk INTEGER NOT NULL,
+    child_menu_pk INTEGER NOT NULL,
+);
