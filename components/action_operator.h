@@ -35,6 +35,14 @@ namespace action_operator {
         CurrentWeapon current_weapon{CurrentWeapon::UNARMED};
     };
 
+    struct MenuNode { // 상호작용 메뉴들이 담길 노드 구조체이다.
+        unsigned menu_id{};
+        std::string menu_name;
+        std::vector<MenuNode*> children;
+        MenuNode(unsigned menu_id, std::string_view menu_name);
+        void addChildren(MenuNode* child);
+    };
+
     class Action {
         const unsigned action_id{};
         const std::string action_name;

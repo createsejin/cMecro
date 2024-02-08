@@ -90,6 +90,13 @@ namespace action_operator {
         }
     };
 
+    MenuNode::MenuNode(const unsigned menu_id, const std::string_view menu_name)
+        : menu_id(menu_id), menu_name(menu_name)  {}
+
+    void MenuNode::addChildren(MenuNode* child) {
+        children.push_back(child);
+    }
+
     Action::Action(const unsigned action_id, const std::string_view action_name)
         : action_id(action_id), action_name(action_name) {}
 

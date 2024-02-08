@@ -33,13 +33,17 @@ CREATE TABLE IF NOT EXISTS combine_keys(
 
 CREATE TABLE IF NOT EXISTS menus(
     pk INTEGER,
-    menu_id INTEGER NOT NULL UNIQUE,
+    menu_id INTEGER NOT NULL UNIQUE AUTOINCREMENT,
     menu_name TEXT NOT NULL,
     PRIMARY KEY (pk AUTOINCREMENT)
 );
 
-CREATE TABLE IF NOT EXISTS menu_hierarchy(
+CREATE TABLE IF NOT EXISTS menu_nodes(
     pk INTEGER,
     parent_menu_pk INTEGER NOT NULL,
     child_menu_pk INTEGER NOT NULL,
+    menu_order INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (pk AUTOINCREMENT),
+    FOREIGN KEY (parent_menu_pk) REFERENCES menus(pk),
+    FOREIGN KEY (child_menu_pk) REFERENCES menus(pk)
 );
