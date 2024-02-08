@@ -5,6 +5,7 @@
 #include "../commander.h"
 #include "../key_patterns.h"
 #include "../action_operator.h"
+#include "../sql_executive.h"
 
 #include <wx/splitter.h>
 #include <locale>
@@ -18,6 +19,7 @@ void MainFrame::OnClose(wxCloseEvent& event) {
     if (!commander::into_command_mode.load())
         action_operator::break_key_pattern_threads();
     else cout << "\nMain window closing request received. Press Enter to exit." << endl;
+    sql_executive::check_and_close_memoryDB();
     event.Skip();
 }
 
@@ -74,7 +76,6 @@ void MainApp::run_commander() {
 
 void signalHandler(const int signum) {
     std::cout << "Interrupt signal (" << signum << ") received.\n";
-    action_operator::break_key_pattern_threads();
     MainApp::GetInstance()->ExitMainLoop();
     std::cout << "resources released.\n";
     // Terminate program

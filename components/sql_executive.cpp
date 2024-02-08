@@ -11,8 +11,9 @@ using namespace std;
 namespace sql_executive
 {
     bool debug_sql{true};
+    const char* mecro_data_path = "./mecro_data.db";
 
-    auto open_db_as_memory_db(const char* file_path) -> sqlite3* {
+    auto openDB_as_memoryDB(const char* file_path) -> sqlite3* {
         ifstream file(file_path, ios::binary | ios::ate);
         const streamsize size {file.tellg()};
         file.seekg(0, ios::beg);
@@ -22,23 +23,38 @@ namespace sql_executive
             cerr << "Falied to read database file" << endl;
             return nullptr;
         }
-        sqlite3* memory_db;
-        if (sqlite3_open_v2(":memory:", &memory_db,
-       SQLITE_OPEN_READWRITE, nullptr) != SQLITE_OK) {
-            cerr << "Failed to open SQLite memory database" << endl;
+        sqlite3* memdb;
+        auto rc = sqlite3_open_v2(":memory:", &memdb,
+       SQLITE_OPEN_READWRITE, nullptr);
+        if (rc != SQLITE_OK) {
+            cerr << "Failed to open SQLite memory database. \u25A1" << endl;
             return nullptr;
        }
         // 3. sqlite3_deserialize 함수를 사용하여 이 메모리 버퍼를 SQLite 데이터베이스로 변환한다.
-        sqlite3_deserialize(memory_db, "main", reinterpret_cast<unsigned char*>(buffer.data()),
+        rc = sqlite3_deserialize(memdb, "main", reinterpret_cast<unsigned char*>(buffer.data()),
             size, static_cast<sqlite3_int64>(buffer.size()),
             SQLITE_DESERIALIZE_RESIZEABLE);
-        return memory_db;
+        if (rc != SQLITE_OK) {
+            cerr << "Failed to deserialize the memory database. \u25A1" << endl;
+            sqlite3_close_v2(memdb);
+            return nullptr;
+        }
+        cout << "Opened memory database successfully. \u25A0" << endl;
+        return memdb;
     }
-    sqlite3* memory_db = open_db_as_memory_db(".\\mecro_data.db");
+    sqlite3* memory_db = openDB_as_memoryDB(mecro_data_path);
 
-    auto open_database(const char* file_name, const int flag) -> sqlite3* {
+    void check_and_close_memoryDB() {
+        if (memory_db != nullptr) {
+            sqlite3_close_v2(memory_db);
+            if (debug_sql)
+                cout << "Closed memory database \u25A0" << endl;
+        } else cerr << "Memory DB not opened \u25A1" << endl;
+    }
+
+    auto open_database(const char* file_path, const int flag) -> sqlite3* {
         sqlite3* db;
-        const auto rc = sqlite3_open_v2(file_name, &db,
+        const auto rc = sqlite3_open_v2(file_path, &db,
             flag, nullptr);
         if (rc != SQLITE_OK) {
             std::cerr << "Failed to open mecro_data.db database \u25A1" << std::endl;
@@ -68,7 +84,8 @@ namespace sql_executive
 
     auto prepare_stmt(sqlite3* db, const char* sql) -> sqlite3_stmt* {
         sqlite3_stmt* stmt;
-        const auto rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+        const auto rc = sqlite3_prepare_v3(db, sql, -1, SQLITE_PREPARE_PERSISTENT,
+            &stmt, nullptr);
         if (rc != SQLITE_OK) {
             std::cerr << "Failed to prepare statement: "<< sqlite3_errmsg(db) <<" \u25A1" << std::endl;
             sqlite3_close_v2(db);
@@ -120,7 +137,7 @@ namespace sql_executive
     auto get_input() -> string {
         string input;
         std::getline(std::cin, input);
-        const auto pos = input.find("cmd>");
+        const auto pos = input.find("sql>");
         if (pos != std::string::npos) {
             input.erase(pos, 5);
         }
@@ -163,7 +180,7 @@ namespace sql_executive
         return 0;
     }
 
-    void save_to_disk_db(const char* file_path) {
+    void save_to_diskDB_from_memoryDB(const char* file_path, sqlite3* memory_db) {
         sqlite3* disk_db = open_database(file_path, SQLITE_OPEN_READWRITE);
         if (disk_db == nullptr) return;
         while (true) {
@@ -178,8 +195,8 @@ namespace sql_executive
                     sqlite3_backup_step(backup, -1);
                     sqlite3_backup_finish(backup);
                 }
-                sqlite3_close_v2(disk_db);
                 cout << "Saved the memory database to disk. \u25A0" << endl;
+                sqlite3_close_v2(disk_db);
                 break;
             }
             if (input == "no" || input == "n") {
@@ -192,7 +209,6 @@ namespace sql_executive
     }
 
     void insert_key_code() {
-
         // BEGIN TRANSACTION
         begin_transaction(memory_db);
 
@@ -232,11 +248,115 @@ namespace sql_executive
 
         // Ask user to commit or rollback
         commit_or_rollback(memory_db);
-        // Close the database
-        sqlite3_close_v2(memory_db);
+        save_to_diskDB_from_memoryDB(mecro_data_path, memory_db);
     }
 
-    void insert_key_patterns() {
+    void testdb000() {
+        sqlite3* memoryDB = openDB_as_memoryDB(mecro_data_path);
+        sqlite3_stmt* stmt;
+        const auto sql = "SELECT name FROM sqlite_master WHERE type='table';";
+        if (sqlite3_prepare_v2(memoryDB, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                std::cout << sqlite3_column_text(stmt, 0) << std::endl;
+            }
+        } else {
+            cout << "Failed to execute SQL statement: " << sqlite3_errmsg(memoryDB) << " \u25A1" << endl;
+        }
+        sqlite3_finalize(stmt);
+        sqlite3_close_v2(memoryDB);
+        cout << "Closed memory database." << endl;
+    }
 
+    using Row = std::tuple<int, int, std::string>;
+    int test_call(void* data, const int argc, char* argv[], char* azColName[]) {
+        auto* rows = static_cast<std::vector<Row>*>(data);
+        rows->emplace_back(std::stoi(argv[0]), std::stoi(argv[1]), argv[2]);
+        return 0;
+    }
+
+    void testdb001() {
+        ifstream file(mecro_data_path, ios::binary | ios::ate);
+        const streamsize size {file.tellg()};
+        file.seekg(0, ios::beg);
+
+        vector<char> buffer(size);
+        if (!file.read(buffer.data(), size)) {
+            cerr << "Falied to read database file" << endl;
+            return;
+        }
+        sqlite3* memdb;
+        auto rc = sqlite3_open_v2(":memory:", &memdb,
+       SQLITE_OPEN_READWRITE, nullptr);
+        if (rc != SQLITE_OK) {
+            cerr << "Failed to open SQLite memory database. \u25A1" << endl;
+            return;
+        }
+        // 3. sqlite3_deserialize 함수를 사용하여 이 메모리 버퍼를 SQLite 데이터베이스로 변환한다.
+        rc = sqlite3_deserialize(memdb, "main", reinterpret_cast<unsigned char*>(buffer.data()),
+            size, static_cast<sqlite3_int64>(buffer.size()),
+            SQLITE_DESERIALIZE_RESIZEABLE);
+        if (rc != SQLITE_OK) {
+            cerr << "Failed to deserialize the memory database. \u25A1" << endl;
+            sqlite3_close_v2(memdb);
+            return;
+        }
+        cout << "Opened memory database successfully. \u25A0" << endl;
+        char* errmsg;
+        const auto* sql = "SELECT * FROM single_actions;";
+        std::vector<Row> rows;
+        rc = sqlite3_exec(memdb, sql, test_call, &rows, &errmsg);
+        if (rc != SQLITE_OK) {
+            std::cerr << "SQL error: " << errmsg << " \u25A1" << std::endl;
+            sqlite3_free(errmsg);
+            sqlite3_close_v2(memdb);
+            return;
+        }
+        std::cout << "Operation done successfully. \u25A0" << std::endl;
+        cout << "pk | key_value | key_name" << endl;
+        for (const auto& [one, two, three] : rows) {
+            cout << one << " | " << two << " | " << three << endl;
+        }
+        sqlite3_close_v2(memdb);
+    }
+
+    void testdb002() {
+        ifstream file(mecro_data_path, ios::binary | ios::ate);
+        const streamsize size {file.tellg()};
+        file.seekg(0, ios::beg);
+
+        vector<char> buffer(size);
+        if (!file.read(buffer.data(), size)) {
+            cerr << "Falied to read database file" << endl;
+            return;
+        }
+        sqlite3* memdb;
+        auto rc = sqlite3_open_v2(":memory:", &memdb,
+       SQLITE_OPEN_READWRITE, nullptr);
+        if (rc != SQLITE_OK) {
+            cerr << "Failed to open SQLite memory database. \u25A1" << endl;
+            return;
+        }
+        // 3. sqlite3_deserialize 함수를 사용하여 이 메모리 버퍼를 SQLite 데이터베이스로 변환한다.
+        rc = sqlite3_deserialize(memdb, "main", reinterpret_cast<unsigned char*>(buffer.data()),
+            size, static_cast<sqlite3_int64>(buffer.size()),
+            SQLITE_DESERIALIZE_RESIZEABLE);
+        if (rc != SQLITE_OK) {
+            cerr << "Failed to deserialize the memory database. \u25A1" << endl;
+            sqlite3_close_v2(memdb);
+            return;
+        }
+        cout << "Opened memory database successfully. \u25A0" << endl;
+
+        const auto* sql = "SELECT * FROM single_actions;";
+        sqlite3_stmt* stmt = prepare_stmt(memdb, sql);
+
+        cout << "pk | key_value | key_name" << endl;
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            cout << sqlite3_column_int(stmt, 0)<< " | " << sqlite3_column_int(stmt, 1) << " | "
+            << sqlite3_column_text(stmt, 2) << endl;
+        }
+        // Finalize the statement
+        sqlite3_finalize(stmt);
+        sqlite3_close_v2(memdb);
     }
 }

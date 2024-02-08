@@ -125,11 +125,31 @@ namespace commander {
         if (first_command == "exit") {
             exit_program.store(true);
             action_operator::exit_program_action();
-        } else if (first_command == "insert") {
+            // 프로그램이 종료되는 시점
+            // CLion에서 stop 버튼을 눌러 종료할때(핸들링하기 가장 어려움)
+            // Ctrl+C로 종료할때(console mode가 On일때만 가능) -> signalHandler() call
+            // 일반적인 종료는 다음과 같다. -> 공통 호출: MainFrame::OnClose()
+            // 커맨드 모드 진입 후 exit를 입력했을때
+            // 커맨드 모드 진입 후 GUI X버튼을 누르고 커맨드 라인에 엔터를 눌렀을때
+            // 그리고 user 입장에서는 다음과 같이 두 가지로 종료할 수 있다. (Console mode Off)
+            // 그냥 GUI에서 X버튼으로 눌러 닫을때
+            // F1+F4로 종료할때
+        }
+        else if (first_command == "insert") {
             if (args[1] == "key_code") {
                 sql_executive::insert_key_code();
             }
-        } else {
+        }
+        else if (first_command == "testdb000") {
+            sql_executive::testdb000();
+        }
+        else if (first_command == "testdb001") {
+            sql_executive::testdb001();
+        }
+        else if (first_command == "testdb002") {
+            sql_executive::testdb002();
+        }
+        else {
             cout << "Unknown command" << endl;
         }
     }
