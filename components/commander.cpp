@@ -109,6 +109,10 @@ namespace commander {
         if (pos != std::string::npos) {
             input.erase(pos, 5);
         }
+        ranges::transform(input.begin(), input.end(), input.begin(),
+            [](const unsigned char c) {
+            return std::tolower(c);
+        });
         std::istringstream iss(input);
         std::vector<std::string> args;
         std::string arg;

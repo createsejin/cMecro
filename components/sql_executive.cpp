@@ -9,21 +9,22 @@ using namespace std;
 
 namespace sql_executive
 {
-    sqlite3* mecro_data;
     bool debug_sql{true};
 
-    int open_mecro_data() {
-        const auto rc = sqlite3_open_v2("./mecro_data.db", &mecro_data,
-            SQLITE_OPEN_READWRITE, nullptr);
+    auto open_database(const char* file_name, const int flag) -> sqlite3* {
+        sqlite3* db;
+        const auto rc = sqlite3_open_v2(file_name, &db,
+            flag, nullptr);
         if (rc != SQLITE_OK) {
             std::cerr << "Failed to open mecro_data.db database \u25A1" << std::endl;
-            sqlite3_close_v2(mecro_data);
-            return rc;
+            sqlite3_close_v2(db);
+            return nullptr;
             }
         if (debug_sql)
             cout << "Opened mecro_data.db database successfully \u25A0" << endl;
-        return rc;
+        return db;
     }
+    sqlite3* mecro_data = open_database("./mecro_data.db", SQLITE_OPEN_READWRITE);
 
     int begin_transaction(sqlite3* db) {
         char* errmsg;
@@ -97,7 +98,7 @@ namespace sql_executive
         while (true) {
             string input;
             cout << "Do you want to commit or rollback? (commit/rollback)" << endl;
-            cout << "cmd> ";
+            cout << "sql> ";
             std::getline(std::cin, input);
             const auto pos = input.find("cmd>");
             if (pos != std::string::npos) {
@@ -134,12 +135,11 @@ namespace sql_executive
     }
 
     void insert_key_code() {
-        if (open_mecro_data() != 0) return;
 
         // BEGIN TRANSACTION
         begin_transaction(mecro_data);
 
-        const auto* sql = "INSERT INTO key_code(key_value, key_name) VALUES(?, ?);";
+        const auto* sql = "INSERT INTO key_codes(key_value, key_name) VALUES(?, ?);";
         sqlite3_stmt* stmt = prepare_stmt(mecro_data, sql); if (stmt == nullptr) return;
 
         key_patterns::KeyCodeManager& key_code_manager = key_patterns::KeyCodeManager::getInstance();
@@ -163,7 +163,7 @@ namespace sql_executive
         if (debug_sql)
             cout << "Result of the table key_code:" << endl;
         // Execute SELECT * FROM key_code;
-        sql = "SELECT * FROM key_code;";
+        sql = "SELECT * FROM key_codes;";
         stmt = prepare_stmt(mecro_data, sql); if (stmt == nullptr) return;
         cout << "pk | key_value | key_name" << endl;
         while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -175,7 +175,11 @@ namespace sql_executive
 
         // Ask user to commit or rollback
         commit_or_rollback(mecro_data);
-
+        // Close the database
         sqlite3_close_v2(mecro_data);
+    }
+
+    void insert_key_patterns() {
+
     }
 }
