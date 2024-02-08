@@ -4,11 +4,35 @@
 
 #ifndef SQL_EXECUTIVE_H
 #define SQL_EXECUTIVE_H
+#include "../lib/sqlite3.h"
+#include <fstream>
+#include <vector>
 
 namespace sql_executive
 {
-    void check_and_close_memoryDB();
-    void insert_key_code();
+    class SQLManager {
+        bool debug1 {true};
+        const char* database_path {"./mecro_data.db"};
+        std::ifstream DBfile;
+        std::streampos s_size{};
+        std::vector<char> buffer;
+        sqlite3* memoryDB {nullptr};
+        SQLManager();
+        ~SQLManager();
+    public:
+        static SQLManager& getInstance();
+        SQLManager(const SQLManager&) = delete;
+        SQLManager& operator=(const SQLManager&) = delete;
+        SQLManager(SQLManager&&) = delete;
+        SQLManager& operator=(SQLManager&&) = delete;
+
+        void check_and_close_memoryDB() const;
+        void get_buffer();
+        void open_memoryDB();
+
+        void testdb003() const;
+    };
+    //void insert_key_code();
     void testdb000();
     void testdb001();
     void testdb002();

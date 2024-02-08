@@ -19,7 +19,7 @@ void MainFrame::OnClose(wxCloseEvent& event) {
     if (!commander::into_command_mode.load())
         action_operator::break_key_pattern_threads();
     else cout << "\nMain window closing request received. Press Enter to exit." << endl;
-    sql_executive::check_and_close_memoryDB();
+    //sql_executive::SQLManager::getInstance().check_and_close_memoryDB();
     event.Skip();
 }
 

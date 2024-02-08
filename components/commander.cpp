@@ -135,11 +135,6 @@ namespace commander {
             // 그냥 GUI에서 X버튼으로 눌러 닫을때
             // F1+F4로 종료할때
         }
-        else if (first_command == "insert") {
-            if (args[1] == "key_code") {
-                sql_executive::insert_key_code();
-            }
-        }
         else if (first_command == "testdb000") {
             sql_executive::testdb000();
         }
@@ -148,6 +143,9 @@ namespace commander {
         }
         else if (first_command == "testdb002") {
             sql_executive::testdb002();
+        }
+        else if (first_command == "testdb003") {
+            sql_executive::SQLManager::getInstance().testdb003();
         }
         else {
             cout << "Unknown command" << endl;
