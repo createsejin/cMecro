@@ -7,6 +7,7 @@
 #include "../lib/sqlite3.h"
 #include <fstream>
 #include <vector>
+#include <memory>
 
 namespace sql_executive
 {
@@ -17,24 +18,21 @@ namespace sql_executive
         std::streampos s_size;
         std::vector<char> buffer;
         sqlite3* memoryDB;
+
+    public:
         SQLManager();
         ~SQLManager();
-    public:
-        static SQLManager& getInstance();
-        SQLManager(const SQLManager&) = delete;
-        SQLManager& operator=(const SQLManager&) = delete;
-        SQLManager(SQLManager&&) = delete;
-        SQLManager& operator=(SQLManager&&) = delete;
-
         void check_and_close_memoryDB() const;
         auto get_buffer() -> std::vector<char>;
         auto open_memoryDB() -> sqlite3*;
 
         void testdb003() const;
     };
+    static extern std::unique_ptr<SQLManager> sql_manager;
+
     //void insert_key_code();
-    void testdb000();
-    void testdb001();
-    void testdb002();
+    //void testdb000();
+    //void testdb001();
+    //void testdb002();
 }
 #endif //SQL_EXECUTIVE_H

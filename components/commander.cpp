@@ -1,13 +1,13 @@
 //
 // Created by creat on 2023-12-27.
 //
+#include "sql_executive.h"
 #include "commander.h"
-
 #include "action_operator.h"
 #include "keyboard_hooker.h"
 #include "mouse_hooker.h"
 #include "key_data.h"
-#include "sql_executive.h"
+
 #include <sstream>
 
 using namespace std;
@@ -135,17 +135,8 @@ namespace commander {
             // 그냥 GUI에서 X버튼으로 눌러 닫을때
             // F1+F4로 종료할때
         }
-        else if (first_command == "testdb000") {
-            sql_executive::testdb000();
-        }
-        else if (first_command == "testdb001") {
-            sql_executive::testdb001();
-        }
-        else if (first_command == "testdb002") {
-            sql_executive::testdb002();
-        }
         else if (first_command == "testdb003") {
-            sql_executive::SQLManager::getInstance().testdb003();
+            sql_executive::sql_manager->testdb003();
         }
         else {
             cout << "Unknown command" << endl;
