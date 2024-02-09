@@ -28,7 +28,7 @@ namespace sql_executive
 
         void testdb003() const;
     };
-    static extern std::unique_ptr<SQLManager> sql_manager;
+    extern std::unique_ptr<SQLManager> sql_manager;
 
     //void insert_key_code();
     //void testdb000();
