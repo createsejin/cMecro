@@ -16,6 +16,7 @@ namespace commander {
 
     bool start_up {true};
     bool use_mouse_hooker {true};
+    std::unique_ptr<CLI::App> commander_app = std::make_unique<CLI::App>();
 
     void set_debug_option(const std::string_view arg, const std::string_view option_name,
             bool& debug_option, bool& valid_option) {

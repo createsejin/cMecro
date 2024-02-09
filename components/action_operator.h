@@ -36,7 +36,7 @@ namespace action_operator {
     };
 
     struct MenuNode { // 상호작용 메뉴들이 담길 노드 구조체이다.
-        unsigned menu_id{}; // root id
+        unsigned menu_id; // root id
         std::string menu_name;
         std::vector<MenuNode*> children;
         MenuNode(unsigned menu_id, std::string_view menu_name);
