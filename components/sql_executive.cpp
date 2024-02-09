@@ -95,6 +95,7 @@ namespace sql_executive
         return rc;
     }
 
+    // ReSharper disable once CppDFAConstantParameter
     static auto prepare_stmt(sqlite3* db, const char* sql) -> sqlite3_stmt* {
         sqlite3_stmt* stmt;
         const auto rc = sqlite3_prepare_v3(db, sql, -1, SQLITE_PREPARE_PERSISTENT,
@@ -147,10 +148,10 @@ namespace sql_executive
         }
         return rc;
     }
-    auto get_input() -> string {
+    auto get_input(const string_view prompt) -> string {
         string input;
         std::getline(std::cin, input);
-        const auto pos = input.find("sql>");
+        const auto pos = input.find(prompt);
         if (pos != std::string::npos) {
             input.erase(pos, 5);
         }
@@ -165,9 +166,10 @@ namespace sql_executive
         if (db == nullptr) return 1;
         char* errmsg;
         while (true) {
+            const string prompt{"sql> "};
             cout << "Do you want to commit or rollback? (commit/rollback)" << endl;
-            cout << "sql> ";
-            string input {get_input()};
+            cout << prompt;
+            string input {get_input(prompt)};
             if (input == "commit") {
                 const auto rc = sqlite3_exec(db, "COMMIT;", nullptr, nullptr, &errmsg);
                 if (rc != SQLITE_OK) {
@@ -197,9 +199,10 @@ namespace sql_executive
         sqlite3* disk_db = open_database(file_path, SQLITE_OPEN_READWRITE);
         if (disk_db == nullptr) return;
         while (true) {
+            const string prompt{"sql> "};
             cout << "Do you want to save the memory database to disk? (yes/no)" << endl;
-            cout << "sql> ";
-            string input {get_input()};
+            cout << prompt;
+            string input {get_input(prompt)};
             if (input == "yes" || input == "y") {
 
                 sqlite3_backup* backup = sqlite3_backup_init(disk_db, "main",
