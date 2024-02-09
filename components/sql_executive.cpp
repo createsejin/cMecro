@@ -2,9 +2,8 @@
 // Created by creat on 2024-02-07.
 //
 #include "sql_executive.h"
+#include "commander.h"
 #include "key_patterns.h"
-
-#include <iostream>
 
 using namespace std;
 
@@ -14,8 +13,8 @@ namespace sql_executive
     const char* mecro_data_path = "./mecro_data.db";
 
     SQLManager::SQLManager()
-    : debug1(true), database_path("./mecro_data.db"), DBfile(database_path, ios::binary | ios::ate),
-        s_size(DBfile.tellg()), buffer(get_buffer()), memoryDB(open_memoryDB())
+    : DBfile(database_path, ios::binary | ios::ate),
+        s_size(DBfile.tellg()), buffer(get_buffer()), memoryDB(open_memoryDB()), diskDB(nullptr)
     {
         if (memoryDB == nullptr) {
             cerr << "Failed to open memory database \u25A1" << endl;
@@ -65,20 +64,20 @@ namespace sql_executive
         return db;
     }
 
-    auto open_database(const char* file_path, const int flag) -> sqlite3* {
+    // ReSharper disable once CppDFAConstantParameter
+    auto SQLManager::open_diskDB(const int flag) -> sqlite3* {
         sqlite3* db;
-        const auto rc = sqlite3_open_v2(file_path, &db,
+        const auto rc = sqlite3_open_v2(database_path, &db,
             flag, nullptr);
         if (rc != SQLITE_OK) {
             std::cerr << "Failed to open mecro_data.db database \u25A1" << std::endl;
             sqlite3_close_v2(db);
             return nullptr;
-            }
+        }
         if (debug_sql)
-            cout << "Opened mecro_data.db database successfully \u25A0" << endl;
+            cout << "Opened " << database_path << " database successfully \u25A0" << endl;
         return db;
     }
-    //sqlite3* mecro_data = open_database("./mecro_data.db", SQLITE_OPEN_READWRITE);
 
     int begin_transaction(sqlite3* db) {
         char* errmsg;
@@ -148,20 +147,7 @@ namespace sql_executive
         }
         return rc;
     }
-    auto get_input(const string_view prompt) -> string {
-        string input;
-        std::getline(std::cin, input);
-        const auto pos = input.find(prompt);
-        if (pos != std::string::npos) {
-            input.erase(pos, 5);
-        }
-        // command를 lower case로 변환
-        ranges::transform(input.begin(), input.end(), input.begin(),
-            [](const unsigned char c) {
-            return std::tolower(c);
-        });
-        return input;
-    }
+
     int commit_or_rollback(sqlite3* db) {
         if (db == nullptr) return 1;
         char* errmsg;
@@ -169,7 +155,12 @@ namespace sql_executive
             const string prompt{"sql> "};
             cout << "Do you want to commit or rollback? (commit/rollback)" << endl;
             cout << prompt;
-            string input {get_input(prompt)};
+            const auto args {std::move(commander::get_args_from_input(prompt))};
+            if (args.empty()) {
+                cout << "input command." << endl;
+                continue;
+            }
+            const string_view input {args[0]};
             if (input == "commit") {
                 const auto rc = sqlite3_exec(db, "COMMIT;", nullptr, nullptr, &errmsg);
                 if (rc != SQLITE_OK) {
@@ -195,29 +186,50 @@ namespace sql_executive
         return 0;
     }
 
-    void save_to_diskDB_from_memoryDB(const char* file_path, sqlite3* memory_db) {
-        sqlite3* disk_db = open_database(file_path, SQLITE_OPEN_READWRITE);
-        if (disk_db == nullptr) return;
+    void SQLManager::save_to_diskDB_from_memoryDB(const bool asking) {
+        diskDB = open_diskDB(SQLITE_OPEN_READWRITE);
+        if (diskDB == nullptr) return;
+        if (!asking) {
+            auto* backup = sqlite3_backup_init(diskDB, "main",
+                    memoryDB, "main");
+            if (backup) {
+                sqlite3_backup_step(backup, -1);
+                sqlite3_backup_finish(backup);
+                cout << "Saved the memory database to disk. \u25A0" << endl;
+            } else {
+                cerr << "Failed to backup the memory database to disk. \u25A1" << endl;
+            }
+            sqlite3_close_v2(diskDB);
+            return;
+        }
         while (true) {
             const string prompt{"sql> "};
             cout << "Do you want to save the memory database to disk? (yes/no)" << endl;
             cout << prompt;
-            string input {get_input(prompt)};
+            const auto args {std::move(commander::get_args_from_input(prompt))};
+            if (args.empty()) {
+                cout << "input command." << endl;
+                continue;
+            }
+            const string_view input {args[0]};
             if (input == "yes" || input == "y") {
-
-                sqlite3_backup* backup = sqlite3_backup_init(disk_db, "main",
-                    memory_db, "main");
+                auto* backup = sqlite3_backup_init(diskDB, "main",
+                    memoryDB, "main");
                 if (backup) {
                     sqlite3_backup_step(backup, -1);
                     sqlite3_backup_finish(backup);
+                } else {
+                    cerr << "Failed to backup the memory database to disk. \u25A1" << endl;
+                    sqlite3_close_v2(diskDB);
+                    break;
                 }
+                sqlite3_close_v2(diskDB);
                 cout << "Saved the memory database to disk. \u25A0" << endl;
-                sqlite3_close_v2(disk_db);
                 break;
             }
             if (input == "no" || input == "n") {
+                sqlite3_close_v2(diskDB);
                 cout << "Did not save the memory database to disk. \u25A0" << endl;
-                sqlite3_close_v2(disk_db);
                 break;
             }
             std::cerr << "Unknown command. \u25A1" << std::endl;
@@ -359,6 +371,45 @@ namespace sql_executive
         sqlite3_finalize(stmt);
         sqlite3_close_v2(memdb);
     }*/
+
+    void SQLManager::insert_key_code() {
+        begin_transaction(memoryDB);
+
+        const auto* sql = "INSERT INTO key_codes(key_value, key_name) VALUES(?, ?);";
+        sqlite3_stmt* stmt = prepare_stmt(memoryDB, sql);
+
+        key_patterns::KeyCodeManager& key_code_manager = key_patterns::KeyCodeManager::getInstance();
+        const auto& key_code_map = key_code_manager.get_keyCode_name_map();
+
+        for (const auto& [key, value] : key_code_map) {
+            // Bind the key_value parameter
+            sql_bind_int(memoryDB, stmt, 1, static_cast<int>(key));
+            // Bind the key_name parameter
+            sql_bind_text(memoryDB, stmt, 2, value.c_str());
+            // Execute the statement
+            step_stmt(memoryDB, stmt);
+            // Reset the statement for the next iteration
+            reset_stmt(memoryDB, stmt);
+        }
+        sqlite3_finalize(stmt);
+        if (debug1)
+            cout << "Inserted key codes successfully \u25A0" << endl << endl;
+
+        if (debug1)
+            cout << "Result of the table key_code: " << endl;
+        // Execute SELECT * FROM key_code;
+        sql = "SELECT * FROM key_codes;";
+        stmt = prepare_stmt(memoryDB, sql); if (stmt == nullptr) return;
+        cout << "pk | key_value | key_name" << endl;
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            cout << sqlite3_column_int(stmt, 0)<< " | " << sqlite3_column_int(stmt, 1) << " | "
+            << sqlite3_column_text(stmt, 2) << endl;
+        }
+        // Finalize the statement
+        sqlite3_finalize(stmt);
+        commit_or_rollback(memoryDB);
+        save_to_diskDB_from_memoryDB(true);
+    }
 
     void SQLManager::testdb003() const {
         const auto* sql = "SELECT * FROM single_actions;";

@@ -101,9 +101,8 @@ namespace commander {
             eventLoopThread_mouse.join();
         }
     }
-    void command_operator() {
-        const std::string prompt {"cmd> "};
-        std::cout << prompt; // command mode prompt
+
+    auto get_args_from_input(const std::string_view prompt) -> std::vector<std::string> {
         std::string input;
         std::getline(std::cin, input);
         const auto pos = input.find(prompt);
@@ -120,6 +119,14 @@ namespace commander {
         while (std::getline(iss, arg, ' ')) {
             args.push_back(arg);
         }
+        return args;
+    }
+
+    void command_operator() {
+        const std::string prompt {"cmd> "};
+        std::cout << prompt; // command mode prompt
+
+        const auto args = std::move(get_args_from_input(prompt));
         std::string first_command;
         if (!args.empty()) first_command = args[0];
 
@@ -138,6 +145,10 @@ namespace commander {
         }
         else if (first_command == "testdb003") {
             sql_executive::sql_manager->testdb003();
+        }
+        else if (first_command == "insert") {
+            if (args[1] == "key_code")
+                sql_executive::sql_manager->insert_key_code();
         }
         else {
             cout << "Unknown command" << endl;
