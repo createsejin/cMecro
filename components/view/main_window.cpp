@@ -47,6 +47,7 @@ std::vector<char*> convertArgs(const wxCmdLineArgsArray& argv) {
         // char*를 arg_str.length() + 1 만큼 할당한다.
         auto* arg_c = new char[arg_str.length() + 1]; // dynamic allocation
         // arg_str를 char*형으로 만든뒤 그것을 동적 할당한 arg_c에 복사한다.
+        // ReSharper disable once CppDeprecatedEntity
         std::strcpy(arg_c, arg_str.c_str());
         // 복사된 arg_c를 arg_c_vec에 push_back한다.
         arg_c_vec.push_back(arg_c);

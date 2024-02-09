@@ -4,11 +4,12 @@ CREATE TABLE IF NOT EXISTS temp_table(
         pk INTEGER,
         menu_id INTEGER NOT NULL UNIQUE,
         menu_name TEXT NOT NULL,
+        comment TEXT,
         PRIMARY KEY (pk AUTOINCREMENT)
 );
 
--- INSERT INTO temp_table (key_value, key_name)
--- SELECT key_value, key_name FROM key_codes;
+INSERT INTO temp_table (menu_id, menu_name)
+SELECT menu_id, menu_name FROM menus;
 
 DROP TABLE menus;
 ALTER TABLE temp_table RENAME TO menus;

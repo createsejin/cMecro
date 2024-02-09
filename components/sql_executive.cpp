@@ -188,10 +188,11 @@ namespace sql_executive
 
     void SQLManager::save_to_diskDB_from_memoryDB(const bool asking) {
         diskDB = open_diskDB(SQLITE_OPEN_READWRITE);
-        if (diskDB == nullptr) return;
+        if (diskDB == nullptr || memoryDB == nullptr) return;
         if (!asking) {
+            // ReSharper disable once CppDFAUnreachableCode
             auto* backup = sqlite3_backup_init(diskDB, "main",
-                    memoryDB, "main");
+                                               memoryDB, "main");
             if (backup) {
                 sqlite3_backup_step(backup, -1);
                 sqlite3_backup_finish(backup);

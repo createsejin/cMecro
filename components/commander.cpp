@@ -7,6 +7,7 @@
 #include "keyboard_hooker.h"
 #include "mouse_hooker.h"
 #include "key_data.h"
+#include "timer.h"
 
 #include <sstream>
 
@@ -70,6 +71,7 @@ namespace commander {
             set_debug_option(arg, "--use_mouse_hooker=", use_mouse_hooker, valid_option);
             set_atomic_debug_option(arg, "--deep_debug_pattern_matcher=",
                 deep_debug_pattern_matcher, valid_option);
+            set_atomic_debug_option(arg, "--command_mode=", command_mode, valid_option);
             //set_debug_option(arg, "--use_console=", use_console, valid_option);
             if (!valid_option) {
                 std::cerr << "Unknown command line argument: " << arg << std::endl;
@@ -165,18 +167,21 @@ namespace commander {
                 // Program을 시작하고 처음에만 실행되는 코드다.
                 cout << "Program start" << endl;
                 start_up = false;
-
-                /* 마우스와 키보드의 이벤트를 감지하는 이벤트 루프를 각각의 스레드에서 실행한다.
-                 * 처음에 선언된 스레드 변수의 참조를 받고, 함수 내부에서 임시 스레드로 keyboard_hooker와 mouse_hooker의
-                 * 이벤트 루프를 실행한 후, 임시 스레드를 미리 선언된 스레드 변수에 move시킨다.
-                 * 이렇게 하는 이유는 스레드 변수를 모든 하위 블록에서 사용을 가능케 하기 위함이다.
-                 */
-                std::thread eventLoop_tempThread_keyboard(keyboard_hooker::runEventLoop_keyboard);
-                if (use_mouse_hooker) {
-                    std::thread eventLoop_tempThread_mouse(mouse_hooker::runEventLoop_mouse);
-                    eventLoopThread_mouse = std::move(eventLoop_tempThread_mouse);
+                if (!command_mode.load()) {
+                    /* 마우스와 키보드의 이벤트를 감지하는 이벤트 루프를 각각의 스레드에서 실행한다.
+                    * 처음에 선언된 스레드 변수의 참조를 받고, 함수 내부에서 임시 스레드로 keyboard_hooker와 mouse_hooker의
+                    * 이벤트 루프를 실행한 후, 임시 스레드를 미리 선언된 스레드 변수에 move시킨다.
+                    * 이렇게 하는 이유는 스레드 변수를 모든 하위 블록에서 사용을 가능케 하기 위함이다.
+                    */
+                    std::thread eventLoop_tempThread_keyboard(keyboard_hooker::runEventLoop_keyboard);
+                    if (use_mouse_hooker) {
+                        std::thread eventLoop_tempThread_mouse(mouse_hooker::runEventLoop_mouse);
+                        eventLoopThread_mouse = std::move(eventLoop_tempThread_mouse);
+                    }
+                    eventLoopThread_keyboard = std::move(eventLoop_tempThread_keyboard);
+                } else {
+                    into_command_mode.store(true);
                 }
-                eventLoopThread_keyboard = std::move(eventLoop_tempThread_keyboard);
             }
             // Wait for the event loop threads to finish
             if (eventLoopThread_keyboard.joinable()) {

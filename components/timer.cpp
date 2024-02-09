@@ -13,12 +13,14 @@ using namespace std;
 
 namespace timer
 {
-    Timer::Timer() :
+    Timer::Timer()
         // thread 변수를 초기화 한다.
         // 여기에서 &TimeMeasurement::timeMeasurementLoop는 TimeMeasurement의 멤버 메소드를 가리키는 주소다.
         // this는 현재 객체의 포인터이다.
-        key_release_timer_thread(&Timer::key_release_timerLoop, this),
-        key_press_timer_thread(&Timer::key_press_timerLoop, this) {
+    {
+        if (commander::command_mode.load()) return;
+        key_release_timer_thread = std::move(std::thread{&Timer::key_release_timerLoop, this});
+        key_press_timer_thread = std::move(std::thread{&Timer::key_press_timerLoop, this});
     }
 
     Timer::~Timer() {
