@@ -13,7 +13,8 @@ namespace commander {
     inline std::atomic deep_debug_pattern_matcher{false};
     inline std::atomic into_command_mode{false};
     inline std::atomic exit_program{false};
-    extern std::unique_ptr<CLI::App> commander_app;
+    extern std::unique_ptr<CLI::App> commander_app_ptr;
+    void set_commander_app();
 
     void set_debug_option_from_command_line(int argc, char* argv[]);
     void commander(int argc, char* argv[]);

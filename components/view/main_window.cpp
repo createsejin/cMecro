@@ -91,7 +91,6 @@ void MainApp::initialize_resources() const {
     commander::set_debug_option_from_command_line(argc, argv);
     // test initialize key patterns
     key_patterns::test003();
-
 }
 
 bool MainApp::OnInit() { // 이제 이게 main() 함수 역할, 리소스 초기화 역할을 한다.
