@@ -11,12 +11,12 @@
 namespace sql_executive
 {
     class SQLManager {
-        bool debug1 {true};
-        const char* database_path {"./mecro_data.db"};
+        bool debug1;
+        const char* database_path;
         std::ifstream DBfile;
-        std::streampos s_size{};
+        std::streampos s_size;
         std::vector<char> buffer;
-        sqlite3* memoryDB {nullptr};
+        sqlite3* memoryDB;
         SQLManager();
         ~SQLManager();
     public:
@@ -27,8 +27,8 @@ namespace sql_executive
         SQLManager& operator=(SQLManager&&) = delete;
 
         void check_and_close_memoryDB() const;
-        void get_buffer();
-        void open_memoryDB();
+        auto get_buffer() -> std::vector<char>;
+        auto open_memoryDB() -> sqlite3*;
 
         void testdb003() const;
     };

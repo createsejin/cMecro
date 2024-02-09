@@ -43,18 +43,23 @@ namespace sql_executive
         return memdb;
     }
 
-    SQLManager::SQLManager() {
-        get_buffer();
-        open_memoryDB();
+    SQLManager::SQLManager()
+    : debug1(true), database_path("./mecro_data.db"), DBfile(database_path, ios::binary | ios::ate),
+        s_size(DBfile.tellg()), buffer(get_buffer()), memoryDB(open_memoryDB())
+    {
+        if (memoryDB == nullptr) {
+            cerr << "Failed to open memory database \u25A1" << endl;
+        }
     }
 
     SQLManager::~SQLManager() {
         check_and_close_memoryDB();
+        delete this;
     }
 
     SQLManager& SQLManager::getInstance() {
-        static SQLManager instance;
-        return instance;
+        static auto* instance = new SQLManager();
+        return *instance;
     }
 
     void SQLManager::check_and_close_memoryDB() const {
@@ -65,28 +70,22 @@ namespace sql_executive
         } else cerr << "Memory DB not opened \u25A1" << endl;
     }
 
-    void SQLManager::get_buffer() {
-        ifstream file(database_path, ios::binary | ios::ate);
-        const auto size = file.tellg();
-        s_size = size;
-        file.seekg(0, ios::beg);
-
-        vector<char> buffer(size);
-        if (!file.read(buffer.data(), size)) {
+    auto SQLManager::get_buffer() -> std::vector<char> {
+        std::vector<char> buffer(s_size);
+        DBfile.seekg(0, ios::beg);
+        if (!DBfile.read(buffer.data(), s_size)) {
             cerr << "Falied to read database file" << endl;
-            return;
         }
-        //DBfile = std::move(file);
-        this->buffer = std::move(buffer);
+        return buffer;
     }
 
-    void SQLManager::open_memoryDB() {
+    auto SQLManager::open_memoryDB() -> sqlite3* {
         sqlite3* db;
         auto rc = sqlite3_open_v2(":memory:", &db,
        SQLITE_OPEN_READWRITE, nullptr);
         if (rc != SQLITE_OK) {
             cerr << "Failed to open SQLite memory database. \u25A1" << endl;
-            return;
+            return nullptr;
         }
         // 3. sqlite3_deserialize 함수를 사용하여 이 메모리 버퍼를 SQLite 데이터베이스로 변환한다.
         rc = sqlite3_deserialize(db, "main", reinterpret_cast<unsigned char*>(buffer.data()),
@@ -95,10 +94,11 @@ namespace sql_executive
         if (rc != SQLITE_OK) {
             cerr << "Failed to deserialize the memory database. \u25A1" << endl;
             sqlite3_close_v2(db);
-            return;
+            return nullptr;
         }
         if (debug1)
             cout << "Opened memory database successfully. \u25A0" << endl;
+        return db;
     }
 
     auto open_database(const char* file_path, const int flag) -> sqlite3* {
