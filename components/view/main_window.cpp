@@ -17,7 +17,8 @@ void MainFrame::OnClose(wxCloseEvent& event) {
     commander::exit_program.store(true);
     if (!commander::into_command_mode.load())
         action_operator::break_key_pattern_threads();
-    else cout << "\nMain window closing request received. Press Enter to exit." << endl;
+    if (commander::into_command_mode.load() && !commander::exit_from_cmd.load())
+        cout << "\nMain window closing request received. Press Enter to exit." << endl;
     event.Skip();
 }
 

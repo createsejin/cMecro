@@ -15,6 +15,7 @@ namespace commander {
     inline std::atomic exit_program{false};
     extern std::unique_ptr<CLI::App> commander_app_ptr;
     inline std::atomic command_mode{false};
+    inline std::atomic exit_from_cmd{false};
 
     void set_debug_option_from_command_line(int argc, char* argv[]);
     auto get_args_from_input(std::string_view prompt) -> std::vector<std::string>;

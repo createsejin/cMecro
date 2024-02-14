@@ -134,6 +134,7 @@ namespace commander {
 
         if (first_command == "exit") {
             exit_program.store(true);
+            exit_from_cmd.store(true);
             action_operator::exit_program_action();
             // 프로그램이 종료되는 시점
             // CLion에서 stop 버튼을 눌러 종료할때(핸들링하기 가장 어려움)
@@ -149,11 +150,19 @@ namespace commander {
             sql_executive::sql_manager->testdb003();
         }
         else if (first_command == "insert") {
-            if (args[1] == "key_code")
+            if (args[1] == "key_code") {
                 sql_executive::sql_manager->insert_key_code();
+            }
+            else if (args[1] == "csv") {
+                if (args[2] == "menus") {
+
+                }
+            }
         }
         else {
-            cout << "Unknown command" << endl;
+            if (!exit_program.load()) {
+                cout << "Unknown command: ";
+            }
         }
     }
 
@@ -161,7 +170,7 @@ namespace commander {
         // keyboard_hooker와 mouse_hooker의 이벤트 루프를 실행할 스레드변수의 선언
         thread eventLoopThread_keyboard;
         thread eventLoopThread_mouse;
-
+        bool start_command_mode {true};
         while(!exit_program.load()) { // command loop
             if (start_up) {
                 // Program을 시작하고 처음에만 실행되는 코드다.
@@ -194,9 +203,9 @@ namespace commander {
             }
             if (exit_program.load()) break;
             // command mode 진입시
-            if (into_command_mode.load()) {
+            if (into_command_mode.load() && start_command_mode) {
                 cout << "command mode" << endl;
-                into_command_mode.store(false);
+                start_command_mode = false;
             }
             command_operator();
         }
