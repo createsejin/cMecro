@@ -133,42 +133,44 @@ namespace commander {
         const auto args = std::move(get_args_from_input(prompt));
         std::string first_command;
         if (!args.empty()) first_command = args[0];
+        bool valid_command {false};
 
         if (first_command == "exit") {
             exit_program.store(true);
             exit_from_cmd.store(true);
             action_operator::exit_program_action();
-            // 프로그램이 종료되는 시점
-            // CLion에서 stop 버튼을 눌러 종료할때(핸들링하기 가장 어려움)
-            // Ctrl+C로 종료할때(console mode가 On일때만 가능) -> signalHandler() call
-            // 일반적인 종료는 다음과 같다. -> 공통 호출: MainFrame::OnClose()
-            // 커맨드 모드 진입 후 exit를 입력했을때
-            // 커맨드 모드 진입 후 GUI X버튼을 누르고 커맨드 라인에 엔터를 눌렀을때
-            // 그리고 user 입장에서는 다음과 같이 두 가지로 종료할 수 있다. (Console mode Off)
-            // 그냥 GUI에서 X버튼으로 눌러 닫을때
-            // F1+F4로 종료할때
+            /* 프로그램이 종료되는 시점
+            CLion에서 stop 버튼을 눌러 종료할때(핸들링하기 가장 어려움)
+            Ctrl+C로 종료할때(console mode가 On일때만 가능) -> signalHandler() call
+            일반적인 종료는 다음과 같다. -> 공통 호출: MainFrame::OnClose()
+            커맨드 모드 진입 후 exit를 입력했을때
+            커맨드 모드 진입 후 GUI X버튼을 누르고 커맨드 라인에 엔터를 눌렀을때
+            그리고 user 입장에서는 다음과 같이 두 가지로 종료할 수 있다. (Console mode Off)
+            그냥 GUI에서 X버튼으로 눌러 닫을때
+            F1+F4로 종료할때 */
         }
         else if (first_command == "testdb003") {
             sql_executive::sql_manager->testdb003();
+            valid_command = true;
         }
         else if (first_command == "insert") {
             if (args[1] == "key_code") {
                 sql_executive::sql_manager->insert_key_code();
+                valid_command = true;
             }
             else if (args[1] == "csv") {
                 if (args[2] == "menus") {
 
+                    valid_command = true;
                 }
             }
         }
-        else {
-            if (!exit_program.load()) {
-                cout << "Unknown command: ";
-                for (const auto& arg : args) {
-                    cout << arg << " ";
-                }
-                cout << endl;
+        if (!valid_command && !exit_program.load()) {
+            cout << "Unknown command: ";
+            for (const auto& arg : args) {
+                cout << arg << " ";
             }
+            cout << endl;
         }
     }
 
@@ -209,10 +211,7 @@ namespace commander {
                 cout << "mouse hooker event loop breaked." << endl;
             }
             // 프로그램 종료가 확정되면 commander loop를 break하고 프로그램을 종료한다.
-            if (exit_program.load()) {
-                cout << "exit_program = true, and break commander loop." << endl;
-                break;
-            }
+            if (exit_program.load()) break;
             // command mode 진입시
             if (into_command_mode.load() && start_command_mode) {
                 cout << "command mode" << endl;
