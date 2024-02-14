@@ -4,6 +4,7 @@ project(gta_cMecro)
 option(USE_CONSOLE "use console" ON)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_COMPILER "clang++")
 set(cur_path ${CMAKE_CURRENT_SOURCE_DIR})
 cmake_path(GET cur_path PARENT_PATH parent_path)
 message(STATUS "PARENT_DIR: ${parent_path}")

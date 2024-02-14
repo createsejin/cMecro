@@ -160,7 +160,7 @@ namespace sql_executive
                 cout << "input command." << endl;
                 continue;
             }
-            const string_view input {args[0]};
+            const std::string_view input {args[0]};
             if (input == "commit") {
                 const auto rc = sqlite3_exec(db, "COMMIT;", nullptr, nullptr, &errmsg);
                 if (rc != SQLITE_OK) {
