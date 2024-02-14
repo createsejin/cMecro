@@ -36,7 +36,8 @@ namespace action_operator {
     }
 
     void break_key_pattern_threads() {
-        command_mode_action();
+        if (!commander::command_mode.load())
+            command_mode_action();
         if (lock_guard lock(commander::commander_future_mutex);
             commander::commander_future.valid()) {
             commander::commander_future.wait();
@@ -44,8 +45,8 @@ namespace action_operator {
     }
 
     void exit_program_action() {
-        main_window::MainApp::GetInstance()->ExitMainLoop();
         std::cout << "Program exit" << std::endl;
+        main_window::MainApp::GetInstance()->ExitMainLoop();
     }
 
     std::vector<std::function<void()>> single_actions_vec {

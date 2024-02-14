@@ -1024,6 +1024,74 @@
 2024-02-14-000
     타임스탬프 형식을 조금 수정했다. 오랜만에 다시 C++을 다룬다. 거의 5일 만인가. 오늘은 메뉴들을 SQL에 입력하는걸 해야겠다.
 
+2024-02-14-001
+    음. 내 생각에는 GUI를 사용하지 않는 옵션을 추가해야할것 같다. 그리고 코멘트좀 달아주자 왠만하면. 지금 개발 하면서 코멘트 안 단거
+    너무 많음.
+
+2024-02-14-002
+    아니 왜 gui 사용하지 않는 상태에서 종료가 제대로 안되는지 모르겠다. 아마도 스레드 중에서 뭔가 break나 wait이 아직 안되서 그런것
+    같은데 말이다. 흠.. 왜 그럴까.. 아 왠지 알것 같음. MainFrame이 애초에 없으니까 뭔가 여기에서 블로킹이 걸린듯 하다.
+    커맨더는 제대로 break가 되는것 같은데.. 문제는 gui 쪽에서 종료가 제대로 안되거나 하는것 같다. 일단 키보드 스레드 쪽은 문제가 없어
+    보이는데..
+
+2024-02-14-003
+    레전드다. 질문도 그렇고. 근데 질문하는 와중에 해결해버림. ㅋㅋ 정답은 frame이었다. 처음에 frame을 gui를 사용하지 않을때 false로
+    show를 하면 gui가 안 보이고 나중에 wxWidgets을 정상적으로 종료할 수 있게 되는것. 왜냐면 이렇게 하면 frame 객체를 유지하면서
+    나중에 OnClose를 불러서 다른 스레드에서 commander_future를 제대로 wait할 수 있게 되기 때문. 다음은 질문한 내용들과 답변들이다.
+
+    Q: /workspace main_windows.cpp를 분석해봐. 특히 102번 줄의 OnInit에서 만약 use_gui가 false일때 gui 스레드가 아직 종료가
+    안되는건지, 아니면 main.cpp에서 wxIMPLEMENT_APP_CONSOLE 이 매크로가 만든 main 스레드가 제대로 종료가 안되는건지. 그러니까
+    나는 commander.h의 17번 줄의 command_mode를 true로 하면 commander.cpp의 187번 줄에서 키보드와 마우스 후커를 실행시키지
+    않고, 또, timer.cpp의 21번 줄에서처럼 timer 두 개도 스레드를 만들지 않고 종료해버려. 그러니까 command_mode=true일때에는
+    키보드, 마우스 후커와 타이머 스레드는 실행되지 않아. 이 상태에서 commander.h의 19번 줄에서 use_gui 옵션을 false로 하면
+    main_window.cpp에서 113번줄에 의해 frame->show(true);가 실행되지 않아. 그냥 use_gui가 false일 때에는 frame->show(false)로
+     하는게 나을까? 대체 어디에서 스레드가 종료가 안되서 그런것 같은데. 아니면 commander 스레드에서 action_operator.cpp의 38번 줄의
+     함수처럼 commander_future를 wait하지 않아서 commander_future 스레드가 종료되지 않는건지 대체 뭘까.. 분석 좀 부탁해.
+
+    Ans: main_window.cpp의 OnInit 함수에서 use_gui가 false일 때, GUI 스레드가 종료되지 않는 것 같다는 말씀이신 것 같습니다.
+    wxIMPLEMENT_APP_CONSOLE 매크로가 만든 메인 스레드가 제대로 종료되지 않는 것인지에 대한 질문도 있습니다.  commander.h의 17번 줄에서
+    command_mode를 true로 설정하면, commander.cpp의 187번 줄에서 키보드와 마우스 후커를 실행하지 않고, timer.cpp의 21번 줄에서
+    타이머 스레드 두 개도 생성하지 않는다고 말씀하셨습니다. 이는 command_mode=true일 때 키보드, 마우스 후커와 타이머 스레드가 실행되지
+    않는다는 것을 의미합니다.  commander.h의 19번 줄에서 use_gui 옵션을 false로 설정하면, main_window.cpp의 113번 줄에서
+    frame->Show(true);가 실행되지 않는다고 말씀하셨습니다. 이는 use_gui가 false일 때 frame->Show(false);를 호출하는 것이 더
+    나을지에 대한 질문입니다.  action_operator.cpp의 38번 줄의 함수에서 commander_future를 wait하지 않아서 commander_future
+    스레드가 종료되지 않는 것인지에 대한 질문도 있습니다.  이러한 문제들을 해결하기 위해, 먼저 main_window.cpp의 OnInit 함수에서
+    use_gui가 false일 때 GUI 스레드가 종료되는지 확인해야 합니다. wxWidgets에서는 wxApp::OnExit 함수를 오버라이드하여 애플리케이션이
+    종료될 때 필요한 정리 작업을 수행할 수 있습니다. 이 함수에서 GUI 관련 스레드가 모두 종료되었는지 확인할 수 있습니다. 다음으로,
+    wxIMPLEMENT_APP_CONSOLE 매크로가 만든 메인 스레드가 제대로 종료되는지 확인해야 합니다. 이를 위해 wxApp::OnExit 함수에서 메인
+    스레드가 종료되었는지 확인할 수 있습니다.  commander.h의 command_mode가 true일 때 키보드, 마우스 후커, 타이머 스레드가 실행되지
+    않는다면, 이들 스레드가 종료되었는지 확인해야 합니다. 이를 위해 각 스레드의 상태를 확인하는 함수를 추가하거나, 스레드가 종료될 때 로그를
+    출력하도록 할 수 있습니다.  마지막으로, commander_future 스레드가 종료되지 않는 문제에 대해서는, commander_future의 상태를 확인하는
+    함수를 추가하여 commander_future가 완료되었는지 확인할 수 있습니다. 또는 std::future::wait 또는 std::future::get 함수를
+    사용하여 commander_future가 완료될 때까지 기다릴 수 있습니다.  이러한 방법들을 통해 각 스레드가 제대로 종료되는지 확인할 수 있습니다.
+    이는 멀티스레딩 환경에서 중요한 부분으로, 스레드가 제대로 종료되지 않으면 리소스 누수나 예기치 않은 동작을 일으킬 수 있습니다.
+
+    Q: 아니면 그냥 main_window.cpp에서 115번줄 처럼 use_gui=false일때 frame->show(false)로 한 다음에 commander에서 exit
+    command로 종료할때 commander.cpp의 140번 줄에서 action_operator::exit_program_action();를 호출하고,
+    action_operator.cpp의 49번 줄에서 main_window::MainApp::GetInstance()->ExitMainLoop();를 호출해서 main_window.cpp의
+    120번 줄 MainApp::OnExit()를 호출해서 여기에서 frame->Close(true)를 호출하면 같은 파일에서 16번줄 OnClose를 호출해서 26번
+    줄에서 3가지 조건, 즉, 첫번째는 프로그램 종료 요청이 command mode에서 exit를 호출했는지와 두번째, 처음에 command_mode로 시작했는지와,
+    세번째, use_gui=false 즉, gui를 사용하지 않았을때 27번 줄에서 action_operator::break_key_pattern_threads();를 호출해서
+    action_operator.cpp의 41번 줄에서 commander_future를 종료될때까지 wait하는거지. 그리고 같은 파일 39번줄은 처음 프로그램 시작때
+    command_mode로 시작되었으면 어차피 키보드, 마우스 후커와 타이머는 동작하지 않으니까 40번 줄의 command_mode_action() 즉 이들 스레드를
+    종료하는 코드는 스킵하는거지. 어때?
+
+    Ans: 사용자가 제안한 방법은 프로그램의 종료 시나리오를 처리하는 데 있어 합리적인 접근 방식으로 보입니다. use_gui=false일 때
+    frame->Show(false)를 호출하고, commander에서 exit 명령을 사용하여 프로그램을 종료할 때
+    action_operator::exit_program_action();를 호출하는 것은 프로그램의 종료를 제어하는 데 있어 명확한 흐름을 제공합니다.
+    또한, MainApp::OnExit()에서 frame->Close(true)를 호출하여 OnClose를 호출하고,
+    여기에서 action_operator::break_key_pattern_threads();를 호출하여 commander_future가 종료될 때까지 대기하는 것은 스레드가
+    안전하게 종료되도록 보장합니다.  마지막으로, 프로그램이 처음에 command_mode로 시작되었을 경우 키보드, 마우스 후커, 타이머 스레드가
+    실행되지 않으므로, 이들 스레드를 종료하는 command_mode_action() 코드를 스킵하는 것은 불필요한 연산을 줄이는 데 도움이 됩니다.
+    따라서, 사용자가 제안한 방법은 프로그램의 종료를 안전하고 효율적으로 처리하는 데 도움이 될 것입니다. 이러한 변경을 적용하려면,
+    각 파일에서 해당 코드를 수정하거나 추가하면 됩니다.
+
+    진짜 레전두. 이렇게 자세히 질문하다보니 그냥 질문하면서 문제를 바로 해결해버렸다. ㅋㅋ 개잼있네.
+
+2024-02-14-004
+
+
+
 
 
 

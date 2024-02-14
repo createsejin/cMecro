@@ -28,8 +28,8 @@ namespace sql_executive
     void SQLManager::check_and_close_memoryDB() const {
         if (memoryDB != nullptr) {
             sqlite3_close_v2(memoryDB);
-            if (debug_sql)
-                cout << "Closed memory database \u25A0" << endl;
+            // if (debug_sql)
+            //     cout << "Closed memory database \u25A0" << endl;
         } else cerr << "Memory DB not opened \u25A1" << endl;
     }
 

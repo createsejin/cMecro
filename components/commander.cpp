@@ -17,6 +17,7 @@ namespace commander {
 
     bool start_up {true};
     bool use_mouse_hooker {true};
+    bool use_gui {true};
 
     void set_debug_option(const std::string_view arg, const std::string_view option_name,
             bool& debug_option, bool& valid_option) {
@@ -73,6 +74,7 @@ namespace commander {
                 deep_debug_pattern_matcher, valid_option);
             set_atomic_debug_option(arg, "--command_mode=", command_mode, valid_option);
             //set_debug_option(arg, "--use_console=", use_console, valid_option);
+            set_debug_option(arg, "--use_gui=", use_gui, valid_option);
             if (!valid_option) {
                 std::cerr << "Unknown command line argument: " << arg << std::endl;
             }
@@ -162,6 +164,10 @@ namespace commander {
         else {
             if (!exit_program.load()) {
                 cout << "Unknown command: ";
+                for (const auto& arg : args) {
+                    cout << arg << " ";
+                }
+                cout << endl;
             }
         }
     }
@@ -171,11 +177,12 @@ namespace commander {
         thread eventLoopThread_keyboard;
         thread eventLoopThread_mouse;
         bool start_command_mode {true};
-        while(!exit_program.load()) { // command loop
+        while(true) { // command loop
             if (start_up) {
                 // Program을 시작하고 처음에만 실행되는 코드다.
                 cout << "Program start" << endl;
                 start_up = false;
+
                 if (!command_mode.load()) {
                     /* 마우스와 키보드의 이벤트를 감지하는 이벤트 루프를 각각의 스레드에서 실행한다.
                     * 처음에 선언된 스레드 변수의 참조를 받고, 함수 내부에서 임시 스레드로 keyboard_hooker와 mouse_hooker의
@@ -201,7 +208,11 @@ namespace commander {
                 eventLoopThread_mouse.join();
                 cout << "mouse hooker event loop breaked." << endl;
             }
-            if (exit_program.load()) break;
+            // 프로그램 종료가 확정되면 commander loop를 break하고 프로그램을 종료한다.
+            if (exit_program.load()) {
+                cout << "exit_program = true, and break commander loop." << endl;
+                break;
+            }
             // command mode 진입시
             if (into_command_mode.load() && start_command_mode) {
                 cout << "command mode" << endl;

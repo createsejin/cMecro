@@ -15,10 +15,16 @@ using namespace std;
 
 void MainFrame::OnClose(wxCloseEvent& event) {
     commander::exit_program.store(true);
+    // 만약 command mode로 진입한게 아니라면
     if (!commander::into_command_mode.load())
+        // keyboard hooker와 mouse hooker, timer를 종료한다.
         action_operator::break_key_pattern_threads();
+    // 만약 command mode로 진입했고, command에서 종료한게 아니라 gui에서 종료한 경우
     if (commander::into_command_mode.load() && !commander::exit_from_cmd.load())
+        // command에서 Enter키를 눌러 getline 블로킹을 벗어나 commander가 break할 수 있도록 유도한다.
         cout << "\nMain window closing request received. Press Enter to exit." << endl;
+    if (commander::exit_from_cmd.load() && commander::command_mode.load() && !commander::use_gui)
+        action_operator::break_key_pattern_threads();
     event.Skip();
 }
 
@@ -102,8 +108,14 @@ bool MainApp::OnInit() { // 이제 이게 main() 함수 역할, 리소스 초기
     // run commander
     run_commander();
     // main frame show
+    // gui를 사용하도록 설정하는 경우에만 main frame을 띄운다.
+    // 이 옵션은 기본적으로 true이다.
     auto* frame = new MainFrame();
-    frame->Show(true);
+    if (commander::use_gui) {
+        frame->Show(true);
+    } else {
+        frame->Show(false);
+    }
     return true;
 }
 
